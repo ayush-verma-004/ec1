@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import logo from '../img/logo.jpeg';
 import { 
   Eye, EyeOff, X, CheckCircle2, Circle, Sprout, 
   Briefcase, FileCheck, Building2, Leaf, Shield, 
@@ -78,10 +79,10 @@ const BrandSide = ({ view }) => {
       {/* Content */}
       <div className="relative z-10">
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-7 h-7 rounded-lg bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
-            <Leaf className="text-econe-emerald w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-lg bg-white backdrop-blur-md flex items-center justify-center border border-white/20 overflow-hidden shadow-sm">
+            <img src={logo} alt="Logo" className="w-full h-full object-cover scale-110" />
           </div>
-          <span className="text-base font-bold tracking-tight">Econe</span>
+          <span className="text-base font-bold tracking-tight text-white">EosCarbon</span>
         </div>
 
         <motion.div
@@ -209,7 +210,7 @@ const SignInView = ({ setView, email, setEmail, onClose }) => {
 
       <div className="mt-8 text-center border-t border-gray-100 pt-6">
         <p className="text-gray-500 text-xs">
-          New to Econe?{' '}
+          New to EosCarbon?{' '}
           <button onClick={() => setView('SIGN_UP')} className="text-econe-emerald font-bold hover:underline underline-offset-4">
             Create an account
           </button>
@@ -406,8 +407,8 @@ const OtpView = ({ email, onClose }) => {
       exit={{ opacity: 0, scale: 0.98 }}
       className="text-center"
     >
-      <div className="w-20 h-20 bg-econe-emerald/10 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-econe-emerald/20">
-        <Leaf className="w-10 h-10 text-econe-emerald" />
+      <div className="w-20 h-20 bg-white rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-econe-emerald/20 overflow-hidden shadow-md">
+        <img src={logo} alt="Logo" className="w-full h-full object-cover scale-110" />
       </div>
       <h2 className="text-4xl font-bold text-econe-dark mb-3 font-heading tracking-tight">Verification Code</h2>
       <p className="text-gray-500 mb-10 font-medium">

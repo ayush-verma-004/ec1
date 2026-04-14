@@ -1,3 +1,4 @@
+import logo from '../img/logo.jpeg';
 import { Leaf, Send } from 'lucide-react';
 
 const Footer = () => {
@@ -7,10 +8,10 @@ const Footer = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
                     <div className="col-span-1 lg:col-span-1">
                         <div className="flex items-center gap-2 mb-6">
-                            <div className="w-8 h-8 bg-econe-forest rounded-lg flex items-center justify-center">
-                                <Leaf className="text-econe-emerald w-5 h-5" />
+                            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center overflow-hidden border border-emerald-100/50 shadow-sm">
+                                <img src={logo} alt="EosCarbon Logo" className="w-full h-full object-cover scale-110" />
                             </div>
-                            <span className="text-xl font-bold tracking-tight text-econe-dark">Econe.</span>
+                            <span className="text-xl font-bold tracking-tight text-econe-dark">EosCarbon.</span>
                         </div>
                         <p className="text-econe-dark/60 leading-relaxed mb-8">
                             Decoupling carbon, fueling the future. The world&apos;s most trusted carbon marketplace.

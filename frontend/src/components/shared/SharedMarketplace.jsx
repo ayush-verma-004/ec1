@@ -370,7 +370,7 @@ const SharedMarketplace = ({ userRole = 'FARMER' }) => {
                               <div className="w-full py-3 bg-gray-100 text-gray-400 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 border border-gray-200 cursor-default">
                                 <AlertCircle size={16} /> Sign in to purchase credits
                               </div>
-                              <p className="text-center text-xs text-gray-400">Create a Businessman account to buy carbon credits on Econe.</p>
+                              <p className="text-center text-xs text-gray-400">Create a Businessman account to buy carbon credits on EosCarbon.</p>
                             </div>
                           ) : (
                             <div className="w-full py-4 bg-gray-100 text-gray-400 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 cursor-not-allowed border border-gray-200">

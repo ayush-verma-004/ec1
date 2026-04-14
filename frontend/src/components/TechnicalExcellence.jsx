@@ -4,7 +4,7 @@ import { ShieldCheck, Cpu, Database, RefreshCw } from 'lucide-react';
 const techFeatures = [
     {
         icon: ShieldCheck,
-        title: "Hashing on Econe",
+        title: "Hashing on EosCarbon",
         desc: "Every transaction is cryptographically hashed, ensuring immutable proof of carbon sequestration.",
     },
     {
@@ -20,7 +20,7 @@ const techFeatures = [
     {
         icon: RefreshCw,
         title: "Real-time Sync",
-        desc: "Automatic synchronization between field sensors, farmers, and the Econe registry.",
+        desc: "Automatic synchronization between field sensors, farmers, and the EosCarbon registry.",
     }
 ];
 

@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Menu, X, ShoppingBag } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import logo from '../img/logo.jpeg';
+
 /**
  * Landing Page Navbar — Floating Capsule Design
  *
@@ -64,13 +66,12 @@ const Navbar = ({ onOpenAuth, onOpenMarketplace }) => {
               className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full transition-all duration-200 hover:bg-[#022c22]/5 focus:outline-none shrink-0"
             >
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center shadow-md"
-                style={{ background: 'linear-gradient(135deg, #022c22 0%, #15803d 100%)' }}
+                className="w-10 h-10 rounded-full flex items-center justify-center shadow-sm border border-emerald-100/50 bg-white overflow-hidden"
               >
-                <Leaf className="text-[#22c55e] w-4 h-4" />
+                <img src={logo} alt="EosCarbon Logo" className="w-full h-full object-cover scale-110" />
               </div>
               <span className="text-base font-bold tracking-tight text-[#022c22] hidden sm:block">
-                Econe<span className="text-[#22c55e]">.</span>
+                EosCarbon<span className="text-[#22c55e]">.</span>
               </span>
             </button>
 

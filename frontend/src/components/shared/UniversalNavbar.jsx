@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import logo from '../../img/logo.jpeg';
 import { User, Settings, LogOut, ChevronDown, Menu, X } from 'lucide-react';
 
 /* ─── Role config ─────────────────────────────────────────────────────── */
@@ -83,13 +84,11 @@ const UniversalNavbar = ({
               onClick={() => handleTab(links[0]?.id || 'dashboard')}
               className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full hover:bg-emerald-50 transition-all focus:outline-none shrink-0"
             >
-              {brandIcon && (
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#15803d] to-[#22c55e] text-white flex items-center justify-center shadow-sm">
-                  <span className="w-5 h-5 flex items-center justify-center">{brandIcon}</span>
-                </div>
-              )}
+              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm overflow-hidden border border-emerald-100">
+                <img src={logo} alt="Logo" className="w-full h-full object-cover scale-110" />
+              </div>
               <span className="text-base font-bold font-heading text-[#022c22] tracking-tight hidden sm:block">
-                Econe<span className="text-[#15803d]"> {brandLabel}</span>
+                EosCarbon<span className="text-[#15803d]"> {brandLabel}</span>
               </span>
             </button>
 
