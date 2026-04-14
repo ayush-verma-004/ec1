@@ -4,11 +4,7 @@ import { RefreshCw, X, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function ReloadPrompt() {
-  const {
-    offlineReady: [offlineReady, setOfflineReady],
-    needUpdate: [needUpdate, setNeedUpdate],
-    updateServiceWorker,
-  } = useRegisterSW({
+  const sw = useRegisterSW({
     onRegistered(r) {
       console.log('SW Registered: ' + r);
     },
@@ -16,6 +12,11 @@ function ReloadPrompt() {
       console.log('SW registration error', error);
     },
   });
+
+  // Most resilient way to extract state from the PWA hook
+  const [offlineReady, setOfflineReady] = (sw && sw.offlineReady) ? sw.offlineReady : [false, () => {}];
+  const [needUpdate, setNeedUpdate] = (sw && sw.needUpdate) ? sw.needUpdate : [false, () => {}];
+  const updateServiceWorker = sw ? sw.updateServiceWorker : () => {};
 
   const close = () => {
     setOfflineReady(false);
