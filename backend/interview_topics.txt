@@ -1,0 +1,76 @@
+INTERVIEW PREPARATION GUIDE - PROJECT EVALUATION
+================================================
+
+PROJECT OVERVIEW
+-----------------
+*   **Framework**: Spring Boot 3.x (Java 21)
+*   **Build Tool**: Maven
+*   **Database**: MongoDB (NoSQL)
+*   **Caching**: Hazelcast (Distributed Cache)
+*   **Documentation**: Swagger / OpenAPI (SpringDoc)
+
+1. ARCHITECTURAL PATTERNS
+-------------------------
+*   **Layered Architecture**: The project strictly follows the Controller -> Service -> Repository -> Database flow.
+    *   `Controller`: Handles HTTP requests/responses (e.g., `FarmerProfileController`).
+    *   `Service`: Contains business logic (e.g., `CarbonCreditServiceImpl`).
+    *   `Repository`: Handles data access (e.g., `CarbonCreditRepository`).
+*   **DTO (Data Transfer Object) Pattern**:
+    *   Used to decouple the internal database entities from the external API interface.
+    *   Examples: `CreateCarbonCreditRequestDto`, `CarbonCreditResponseDto`.
+*   **Repository Pattern**:
+    *   Abstraction layer over data storage.
+    *   Usage: Interfaces extending `MongoRepository` (Spring Data MongoDB).
+*   **Builder Pattern**:
+    *   Used extensively for object creation (likely via Lombok `@Builder`).
+    *   Example: `CarbonCredit.builder()....build()`.
+
+2. AUTHENTICATION & SECURITY (Method-Level & JWT)
+-------------------------------------------------
+*   **Concept**: Token-based Stateless Authentication (JWT).
+*   **Key Components**:
+    *   **JWT (JSON Web Token)**: Used for securing the API. The server issues a token upon login, and the client sends it in the `Authorization` header (`Bearer <token>`) for subsequent requests.
+    *   **SecurityFilterChain**: The main entry point for Spring Security configuration.
+*   **Implementation Details**:
+    *   **Filter Chain**: `JwtAuthenticationFilter` intercepts requests to validate the token before they reach the controllers.
+    *   **Stateless Session**: `SessionCreationPolicy.STATELESS` ensures no server-side sessions are stored (RESTful best practice).
+    *   **Password Encoding**: `BCryptPasswordEncoder` is used to hash passwords before saving them to the database.
+*   **Method-Level Security**:
+    *   **Annotation**: `@PreAuthorize("hasRole('ROLE_NAME')")`
+    *   **Usage**: Restricts access to specific controller methods based on the user's role (Farmer, NGO, Government).
+    *   **Example**: `FarmerProfileController` has `@PreAuthorize("hasRole('FARMER')")`.
+
+3. CACHING (Hazelcast & Spring Cache)
+-------------------------------------
+*   **Concept**: In-Memory Data Grid / Distributed Caching.
+*   **Goal**: Reduce database load and improve read performance for frequently accessed data.
+*   **Implementation**:
+    *   **Configuration**: `HazelcastConfig` defines map configurations (TTL, Max Idle, Eviction Policies like LRU).
+    *   **Annotations**:
+        *   `@EnableCaching`: Enables Spring's caching infrastructure.
+        *   `@Cacheable(value = "mapName", key = "...")`: Caches the result of a method call. Subsequent calls with the same key return the cached value without executing the method.
+        *   `@CachePut(value = "mapName", key = "...")`: Updates the cache with the method result (used in Create/Update operations).
+        *   `@CacheEvict(value = "mapName", ...)`: Removes entries from the cache (used in Delete operations), or flushes the cache.
+        *   `@Caching`: Allows combining multiple cache operations (e.g., updating one cache while evicting another).
+*   **Example Flow**:
+    *   `getCarbonCredit(id)` -> Checks Hazelcast. If missing, runs method, fetches from DB, puts in Hazelcast.
+    *   `updateCarbonCredit(...)` -> Updates DB, then updates the entry in Hazelcast via `@CachePut`.
+
+4. DATABASE (MongoDB)
+---------------------
+*   **Concept**: Document-oriented NoSQL database.
+*   **Mapping**: Uses Spring Data MongoDB annotations like `@Document`, `@Id`.
+
+5. KEY INTERVIEW QUESTIONS TO EXPECT
+------------------------------------
+Q: Why did you use JWT instead of Session-based auth?
+A: To make the application stateless and scalable, allowing it to easily support mobile clients or be distributed across multiple servers (or microservices) without sticky sessions.
+
+Q: How does the @Cacheable annotation work internally?
+A: It uses AOP (Aspect Oriented Programming) to intercept the method call. It checks the cache key; if found, returns the value. If not, it runs the method and stores the result.
+
+Q: Explain the eviction policy used in Hazelcast.
+A: We used LRU (Least Recently Used). If the cache is full, the items that haven't been accessed for the longest time are removed first.
+
+Q: What is the purpose of the DTO pattern in your project?
+A: To hide the internal database structure (Entities) from the client and to transfer only the necessary data, which improves security and reduces payload size.
