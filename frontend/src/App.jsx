@@ -14,7 +14,6 @@ import { clearSession, isTokenExpired } from './utils/auth';
 
 // PWA & Mobile Components
 import ReloadPrompt from './components/pwa/ReloadPrompt';
-import BottomNav from './components/navigation/BottomNav';
 
 // Lazy Loaded Portals for PWA Performance
 const GovernmentPortal = lazy(() => import('./components/gov/GovernmentPortal'));
@@ -80,7 +79,7 @@ function App() {
           <Route
             path="/"
             element={
-              <div className="min-h-screen pb-20 md:pb-0">
+              <div className="min-h-screen">
                 <Navbar
                   onOpenAuth={() => setIsAuthOpen(true)}
                   onOpenMarketplace={() => navigate('/marketplace')}
@@ -120,7 +119,7 @@ function App() {
           <Route
             path="/marketplace"
             element={
-              <div className="min-h-screen flex flex-col bg-[#f0fdf4] pb-20 md:pb-0">
+              <div className="min-h-screen flex flex-col bg-[#f0fdf4]">
                 {/* Floating Capsule Back Bar */}
                 <div className="sticky top-0 z-50 w-full">
                   <div className="px-4 pt-4 pb-4 pointer-events-none">
@@ -181,9 +180,6 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-
-      {/* Mobile-only Bottom Navigation */}
-      <BottomNav />
     </div>
   );
 }
