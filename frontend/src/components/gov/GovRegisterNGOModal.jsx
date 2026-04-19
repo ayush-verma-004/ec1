@@ -60,6 +60,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
   const [step, setStep] = useState('form'); // 'form' or 'otp'
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
 
   const validate = () => {
