@@ -26,15 +26,14 @@ public class HazelcastConfig {
         config.addMapConfig(governmentMapConfig());
         config.addMapConfig(defaultMapConfig());
 
-        // Network configuration for embedded mode but ready for clustering
+        // Network configuration for standalone mode
         NetworkConfig network = config.getNetworkConfig();
         network.setPort(5701)
-                .setPortAutoIncrement(true);
+                .setPortAutoIncrement(false); // Standalone instance
 
         JoinConfig join = network.getJoin();
-        join.getMulticastConfig().setEnabled(false); // Disable multicast for simple local/cloud setup
-        join.getTcpIpConfig().setEnabled(true)
-                .addMember("127.0.0.1"); // Default to localhost for now
+        join.getMulticastConfig().setEnabled(false);
+        join.getTcpIpConfig().setEnabled(false); // Disable clustering for Render Free Tier
 
         // Enable REST API for health checks and monitoring
         network.getRestApiConfig()

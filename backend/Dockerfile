@@ -13,8 +13,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Optimizing for low-memory environments (Render Free Tier)
-# -Xmx350m: Sets max heap size
-# -Djava.net.preferIPv4Stack=true: Helps with connection issues in some cloud VPCs
-ENV JAVA_OPTS="-Xmx350m -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true -Djava.security.egd=file:/dev/./urandom"
+# -Xmx300m: Sets max heap size (safest for 512MB total RAM)
+# -Djava.net.preferIPv4Stack=true: Essential for some cloud networking
+ENV JAVA_OPTS="-Xmx300m -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true -Djava.security.egd=file:/dev/./urandom"
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
