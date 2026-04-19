@@ -252,39 +252,38 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
               leaveFrom="opacity-100 scale-100 y-0"
               leaveTo="opacity-0 scale-95 y-4"
             >
-              <Dialog.Panel className={`w-full ${step === 'otp' ? 'max-w-md' : 'max-w-4xl'} transform overflow-hidden rounded-[2rem] bg-[#f8fafc] text-left align-middle shadow-2xl transition-all`}>
+              <Dialog.Panel className={`w-full ${step === 'otp' ? 'max-w-xs' : 'max-w-4xl'} transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all border border-slate-100`}>
                 
                 {/* Header */}
-                <div className="bg-white px-8 py-6 flex items-center justify-between border-b border-gray-100 sticky top-0 z-20">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-econe-emerald/10 rounded-xl">
-                      <Building className="w-6 h-6 text-econe-emerald" />
+                <div className={`px-6 py-4 flex items-center justify-between border-b border-slate-50 ${step === 'otp' ? 'bg-slate-50/50' : 'bg-white'} sticky top-0 z-20`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${step === 'otp' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                      <Building className="w-5 h-5" />
                     </div>
                     <div>
-                      <Dialog.Title as="h3" className="text-2xl font-bold leading-6 text-econe-dark">
-                        {step === 'form' ? 'Register Verification Partner' : 'Verify NGO Account'}
+                      <Dialog.Title as="h3" className="text-lg font-bold text-slate-900 leading-tight">
+                        {step === 'form' ? 'Onboard NGO Partner' : 'Verification'}
                       </Dialog.Title>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {step === 'form' 
-                          ? 'Onboard a new NGO to audit and verify carbon credits on Econe.' 
-                          : `Enter the verification code sent to ${registeredEmail}`}
-                      </p>
+                      {step === 'form' && <p className="text-[11px] text-slate-500 font-medium">Add a new organization to the network.</p>}
                     </div>
                   </div>
-                  <button onClick={handleClose} className="p-2 rounded-full hover:bg-gray-100 text-gray-400 transition-colors">
-                    <X className="w-6 h-6" />
+                  <button onClick={handleClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
                 {step === 'form' ? (
                   <>
                     {/* Form Body */}
-                    <div className="p-8 max-h-[75vh] overflow-y-auto">
-                      <div className="space-y-10">
+                    <div className="p-6 max-h-[70vh] overflow-y-auto bg-slate-50/30">
+                      <div className="space-y-8">
                         {/* Section A: Credentials */}
                         <section>
-                          <h4 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4 pl-1">A. Account Credentials</h4>
-                          <div className="glass bg-white p-6 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-6 h-6 rounded bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">1</span>
+                            <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase">Account Credentials</h4>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5">
                             <FloatingInput 
                               label="Email Address" 
                               type="email" 
@@ -294,38 +293,41 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                               error={errors.email}
                             />
                             <FloatingInput 
-                              label="Temporary Password" 
+                              label="Account Password" 
                               type="text" 
                               required 
                               value={formData.temporaryPassword} 
                               onChange={(e) => setFormData({...formData, temporaryPassword: e.target.value})} 
                               error={errors.temporaryPassword}
-                              hint="Minimum 8 characters. NGO must change this upon first login."
+                              hint="Min 8 chars."
                             />
                           </div>
                         </section>
 
                         {/* Section B: Organization Details */}
                         <section>
-                          <h4 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4 pl-1">B. Organization Details</h4>
-                          <div className="glass bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="flex items-center gap-2 mb-3">
+                            <span className="w-6 h-6 rounded bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                            <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase">Organization Details</h4>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                               <FloatingInput 
-                                label="Organization Name (NGO)" 
+                                label="NGO Name" 
                                 required 
                                 value={formData.organizationName} 
                                 onChange={(e) => setFormData({...formData, organizationName: e.target.value})} 
                                 error={errors.organizationName}
                               />
                               <FloatingInput 
-                                label="Registration Number" 
+                                label="Registration #" 
                                 required 
                                 value={formData.registrationNumber} 
                                 onChange={(e) => setFormData({...formData, registrationNumber: e.target.value})} 
                                 error={errors.registrationNumber}
                               />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                               <FloatingInput 
                                 label="Years of Operation" 
                                 type="number"
@@ -333,18 +335,15 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                                 value={formData.yearsOfOperation} 
                                 onChange={(e) => setFormData({...formData, yearsOfOperation: e.target.value})} 
                                 error={errors.yearsOfOperation}
-                                hint="Must be a positive numeric value."
                               />
                               <FloatingInput 
                                 label="Website URL" 
                                 type="url"
                                 value={formData.website} 
                                 onChange={(e) => setFormData({...formData, website: e.target.value})} 
-                                hint="Optional but recommended for public profiles."
                               />
                             </div>
                             
-                            {/* Focus Areas Dynamic Input */}
                             <div>
                                <div className="relative w-full">
                                 <input
@@ -353,21 +352,19 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                                   onChange={(e) => setFocusInput(e.target.value)}
                                   onKeyDown={handleAddFocusArea}
                                   placeholder=" "
-                                  className="peer block w-full px-4 pb-2.5 pt-6 text-sm text-gray-900 bg-white rounded-xl border border-gray-200 focus:border-econe-emerald focus:ring-econe-emerald/20 appearance-none focus:outline-none focus:ring-4 transition-all"
+                                  className="peer block w-full px-4 pb-2.5 pt-6 text-sm text-slate-900 bg-white rounded-xl border border-slate-200 focus:border-emerald-600 focus:ring-emerald-600/10 appearance-none focus:outline-none focus:ring-4 transition-all"
                                 />
-                                <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 pointer-events-none peer-focus:text-econe-emerald">
-                                  Focus Areas (Press Enter to Add)
+                                <label className="absolute text-sm text-slate-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3 pointer-events-none peer-focus:text-emerald-600">
+                                  Expertise Areas
                                 </label>
-                                <p className="mt-1.5 text-xs text-gray-400">Examples: Reforestation, Soil Health, Direct Air Capture</p>
                                 
-                                {/* Tags Display */}
                                 {formData.focusAreas.length > 0 && (
-                                  <div className="flex flex-wrap gap-2 mt-4">
+                                  <div className="flex flex-wrap gap-1.5 mt-3">
                                     {formData.focusAreas.map((area, idx) => (
-                                      <div key={idx} className="bg-econe-emerald/10 text-econe-forest px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2 border border-econe-emerald/20">
+                                      <div key={idx} className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-slate-200">
                                         {area}
-                                        <button type="button" onClick={() => removeFocusArea(idx)} className="hover:text-red-500 transition-colors">
-                                          <XCircle className="w-4 h-4" />
+                                        <button type="button" onClick={() => removeFocusArea(idx)} className="hover:text-rose-600 transition-colors">
+                                          <XCircle className="w-3.5 h-3.5" />
                                         </button>
                                       </div>
                                     ))}
@@ -380,70 +377,28 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
 
                         {/* Section C: Contact */}
                         <section>
-                          <h4 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4 pl-1">C. Contact Information</h4>
-                          <div className="glass bg-white p-6 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <FloatingInput 
-                              label="Contact Person Name" 
-                              required 
-                              value={formData.contactPersonName} 
-                              onChange={(e) => setFormData({...formData, contactPersonName: e.target.value})} 
-                              error={errors.contactPersonName}
-                            />
-                            <FloatingInput 
-                              label="Phone Number" 
-                              type="tel" 
-                              required 
-                              value={formData.phoneNumber} 
-                              onChange={(e) => setFormData({...formData, phoneNumber: e.target.value.replace(/\D/g, '')})} 
-                              error={errors.phoneNumber}
-                              maxLength={10}
-                              hint="Must be exactly 10 digits."
-                            />
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-6 h-6 rounded bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">3</span>
+                            <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase">Contact</h4>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <FloatingInput label="Admin Name" required value={formData.contactPersonName} onChange={(e) => setFormData({...formData, contactPersonName: e.target.value})} error={errors.contactPersonName} />
+                            <FloatingInput label="Mobile Number" type="tel" required value={formData.phoneNumber} onChange={(e) => setFormData({...formData, phoneNumber: e.target.value.replace(/\D/g, '')})} error={errors.phoneNumber} maxLength={10} />
                           </div>
                         </section>
 
-                        {/* Section D: Location */}
+                        {/* Section D: Address */}
                         <section>
-                          <h4 className="text-sm font-bold text-gray-400 tracking-widest uppercase mb-4 pl-1">D. Location & Address</h4>
-                          <div className="glass bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <FloatingInput 
-                                label="Address Line 1" 
-                                required 
-                                value={formData.addressLine1} 
-                                onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} 
-                                error={errors.addressLine1}
-                              />
-                              <FloatingInput 
-                                label="Address Line 2" 
-                                value={formData.addressLine2} 
-                                onChange={(e) => setFormData({...formData, addressLine2: e.target.value})} 
-                              />
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <FloatingInput 
-                                label="City" 
-                                required 
-                                value={formData.city} 
-                                onChange={(e) => setFormData({...formData, city: e.target.value})} 
-                                error={errors.city}
-                              />
-                              <FloatingInput 
-                                label="State / Province" 
-                                required 
-                                value={formData.state} 
-                                onChange={(e) => setFormData({...formData, state: e.target.value})} 
-                                error={errors.state}
-                              />
-                              <FloatingInput 
-                                label="Pincode" 
-                                required 
-                                maxLength={6}
-                                value={formData.pincode} 
-                                onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '')})} 
-                                error={errors.pincode}
-                                hint="6 digits max."
-                              />
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="w-6 h-6 rounded bg-slate-900 text-white text-[10px] font-bold flex items-center justify-center">4</span>
+                            <h4 className="text-xs font-bold text-slate-400 tracking-wider uppercase">Location</h4>
+                          </div>
+                          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-5">
+                            <FloatingInput label="Address Line 1" required value={formData.addressLine1} onChange={(e) => setFormData({...formData, addressLine1: e.target.value})} error={errors.addressLine1} />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                              <FloatingInput label="City" required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} error={errors.city} />
+                              <FloatingInput label="State" required value={formData.state} onChange={(e) => setFormData({...formData, state: e.target.value})} error={errors.state} />
+                              <FloatingInput label="Pincode" required maxLength={6} value={formData.pincode} onChange={(e) => setFormData({...formData, pincode: e.target.value.replace(/\D/g, '')})} error={errors.pincode} />
                             </div>
                           </div>
                         </section>
@@ -451,73 +406,61 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                     </div>
 
                     {/* Footer Action */}
-                    <div className="bg-white px-8 py-6 border-t border-gray-100 sticky bottom-0 z-20 flex gap-4 justify-end">
-                      <button
-                        onClick={handleClose}
-                        type="button"
-                        disabled={isSubmitting}
-                        className="px-6 py-3 font-bold text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Cancel
-                      </button>
+                    <div className="bg-white px-6 py-4 border-t border-slate-100 flex gap-3 justify-end items-center">
+                      <button onClick={handleClose} type="button" disabled={isSubmitting} className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest px-4">Cancel</button>
                       <button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
                         type="button"
-                        className="px-8 py-3 w-full sm:w-auto flex justify-center items-center gap-2 font-bold text-white bg-econe-emerald hover:bg-econe-forest rounded-xl shadow-lg shadow-econe-emerald/20 transition-all disabled:opacity-70 disabled:cursor-wait"
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all disabled:opacity-70 disabled:cursor-wait"
                       >
-                        {isSubmitting ? 'Onboarding NGO...' : 'Register Target NGO'}
-                        {!isSubmitting && <Plus className="w-5 h-5" />}
+                        {isSubmitting ? 'Onboarding...' : 'Register NGO'}
                       </button>
                     </div>
                   </>
                 ) : (
                   <>
-                    {/* OTP Body */}
-                    <div className="p-8 flex flex-col items-center text-center space-y-6">
-                       <div className="w-20 h-20 bg-econe-emerald/10 rounded-3xl flex items-center justify-center">
-                          <Plus className="w-10 h-10 text-econe-emerald rotate-45" />
-                       </div>
-                       
-                       <div className="max-w-md space-y-2">
-                         <h4 className="text-xl font-bold text-econe-dark">Check the NGO's Email</h4>
-                         <p className="text-gray-500">
-                           A 6-digit verification code has been sent to <span className="text-econe-emerald font-semibold">{registeredEmail}</span>. 
-                           Ask the NGO for the code to activate their account now.
+                    {/* Compact OTP Body */}
+                    <div className="p-6 flex flex-col items-center text-center space-y-5">
+                       <div className="text-center space-y-1">
+                         <h4 className="text-base font-bold text-slate-900">Enter OTP Code</h4>
+                         <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                           We've sent a code to <span className="text-slate-900 font-bold underline">{registeredEmail}</span>
                          </p>
                        </div>
 
-                       {/* OTP Input Group */}
-                       <div className="flex gap-3 sm:gap-4 justify-center py-4">
+                       {/* Small OTP Input Group */}
+                       <div className="flex gap-2 justify-center py-2">
                          {otpCode.map((digit, idx) => (
                            <input
                              key={idx}
                              id={`otp-${idx}`}
                              type="text"
+                             autoComplete="one-time-code"
                              inputMode="numeric"
                              maxLength={1}
                              value={digit}
                              onChange={(e) => handleOtpChange(idx, e.target.value)}
                              onKeyDown={(e) => handleKeyDown(idx, e)}
-                             className="w-12 h-14 sm:w-16 sm:h-20 text-center text-2xl font-bold text-econe-dark bg-white border-2 border-gray-100 rounded-2xl focus:border-econe-emerald focus:ring-4 focus:ring-econe-emerald/10 outline-none transition-all shadow-sm"
+                             className="w-10 h-12 text-center text-xl font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-inner"
                            />
                          ))}
                        </div>
 
-                       <div className="w-full max-w-sm space-y-4 pt-4">
+                       <div className="w-full space-y-3 pt-2">
                          <button
                            onClick={handleVerifyOtp}
                            disabled={isVerifying}
-                           className="w-full py-4 bg-econe-emerald hover:bg-econe-forest text-white font-bold rounded-2xl shadow-xl shadow-econe-emerald/20 transition-all flex items-center justify-center gap-3 disabled:opacity-70"
+                           className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition-all text-sm disabled:opacity-70"
                          >
-                           {isVerifying ? 'Verifying Account...' : 'Activate Account Now'}
+                           {isVerifying ? 'Verifying...' : 'Validate & Activate'}
                          </button>
                          <button
                            onClick={handleClose}
                            disabled={isVerifying}
-                           className="w-full py-2 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors"
+                           className="w-full py-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest"
                          >
-                           Skip For Now (NGO can verify later)
+                           Continue Later
                          </button>
                        </div>
                     </div>

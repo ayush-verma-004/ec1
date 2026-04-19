@@ -13,7 +13,7 @@ const GovernmentPortal = ({ onSignOut }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-[#f0fdf4]">
+    <div className="min-h-screen flex flex-col font-sans bg-slate-50">
 
       <GovNavbar 
         activeTab={activeTab} 
@@ -21,50 +21,50 @@ const GovernmentPortal = ({ onSignOut }) => {
         onSignOut={onSignOut} 
       />
       
-      <main className="flex-1 overflow-x-hidden relative pt-20">
+      <main className="flex-1 overflow-x-hidden relative pt-16">
         <AnimatePresence mode="wait">
           {activeTab === 'dashboard' && (
             <motion.div 
               key="dashboard"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <GovDashboard />
             </motion.div>
           )}
 
           {activeTab === 'profile' && (
-            <motion.div key="profile" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+            <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
               <GovProfile />
             </motion.div>
           )}
           {activeTab === 'ngos' && (
-            <motion.div key="ngos" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+            <motion.div key="ngos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
               <GovNgoList />
             </motion.div>
           )}
           {activeTab === 'verifications' && (
             <motion.div 
               key="verifications"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
               <GovVerifications />
             </motion.div>
           )}
 
           {activeTab === 'transactions' && (
-            <motion.div key="transactions" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+            <motion.div key="transactions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
               <GovTransactions />
             </motion.div>
           )}
 
           {activeTab === 'marketplace' && (
-            <motion.div key="marketplace" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+            <motion.div key="marketplace" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
               <SharedMarketplace userRole="GOVERNMENT" />
             </motion.div>
           )}
