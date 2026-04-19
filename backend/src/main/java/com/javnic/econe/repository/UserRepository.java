@@ -11,10 +11,13 @@ import java.util.List;
 @Repository
 public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
 
     boolean existsByEmail(String email);
 
     List<User> findByRole(UserRole role);
 
     List<User> findByCreatedBy(String createdBy);
+    
+    List<com.javnic.econe.entity.User> findByStatusAndCreatedAtBefore(com.javnic.econe.enums.UserStatus status, java.time.LocalDateTime dateTime);
 }

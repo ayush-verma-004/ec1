@@ -59,7 +59,7 @@ public class OtpServiceImpl implements OtpService {
     @Transactional
     public boolean verifyOtp(String email, String otp) {
         OtpVerification otpVerification = otpRepository
-                .findByEmailAndStatus(email, OtpStatus.PENDING)
+                .findByEmailIgnoreCaseAndStatus(email, OtpStatus.PENDING)
                 .orElseThrow(() -> new ValidationException("No pending OTP found for this email"));
 
         // Check if OTP is expired

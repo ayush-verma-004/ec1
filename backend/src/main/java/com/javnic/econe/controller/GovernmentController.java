@@ -35,4 +35,10 @@ public class GovernmentController {
     public ResponseEntity<List<NgoDetailResponseDto>> getAllNgos() {
         return ResponseEntity.ok(userService.findAllNgos());
     }
+
+    @DeleteMapping("/ngo/{userId}")
+    public ResponseEntity<Void> deleteNGO(@PathVariable String userId) {
+        userService.deleteNgo(userId);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -14,6 +14,7 @@ public interface OtpVerificationRepository extends MongoRepository<OtpVerificati
     Optional<OtpVerification> findByUserIdAndStatus(String userId, OtpStatus status);
 
     Optional<OtpVerification> findByEmailAndStatus(String email, OtpStatus status);
+    Optional<OtpVerification> findByEmailIgnoreCaseAndStatus(String email, OtpStatus status);
 
     List<OtpVerification> findByUserId(String userId);
 

@@ -184,7 +184,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
     try {
       await api.post('/auth/verify-otp', {
         email: registeredEmail,
-        otpCode: fullOtp
+        otp: fullOtp
       });
 
       toast.success("NGO Account Verified & Active!", {
@@ -252,7 +252,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
               leaveFrom="opacity-100 scale-100 y-0"
               leaveTo="opacity-0 scale-95 y-4"
             >
-              <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-[2rem] bg-[#f8fafc] text-left align-middle shadow-2xl transition-all">
+              <Dialog.Panel className={`w-full ${step === 'otp' ? 'max-w-md' : 'max-w-4xl'} transform overflow-hidden rounded-[2rem] bg-[#f8fafc] text-left align-middle shadow-2xl transition-all`}>
                 
                 {/* Header */}
                 <div className="bg-white px-8 py-6 flex items-center justify-between border-b border-gray-100 sticky top-0 z-20">
@@ -474,7 +474,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                 ) : (
                   <>
                     {/* OTP Body */}
-                    <div className="p-12 flex flex-col items-center text-center space-y-8">
+                    <div className="p-8 flex flex-col items-center text-center space-y-6">
                        <div className="w-20 h-20 bg-econe-emerald/10 rounded-3xl flex items-center justify-center">
                           <Plus className="w-10 h-10 text-econe-emerald rotate-45" />
                        </div>

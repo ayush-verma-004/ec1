@@ -8,4 +8,6 @@ import java.util.List;
 public interface UserService {
     UserResponseDto createNGO(CreateNGORequestDto request, String createdByUserId);
     List<NgoDetailResponseDto> findAllNgos();
+    void deleteNgo(String userId);
+    void deleteUnverifiedUsersOlderThan(int minutes);
 }

@@ -23,6 +23,18 @@ const GovNgoList = () => {
     }
   };
 
+  const handleDelete = async (userId) => {
+    if (window.confirm('Are you sure you want to PERMANENTLY delete this NGO account and profile? This action cannot be undone.')) {
+      try {
+        await api.delete(`/government/ngo/${userId}`);
+        toast.success('NGO account deleted successfully');
+        fetchNgos();
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete NGO');
+      }
+    }
+  };
+
   useEffect(() => {
     fetchNgos();
   }, []);
@@ -126,7 +138,12 @@ const GovNgoList = () => {
 
             <div className="mt-8 flex gap-3">
               <button className="flex-1 py-3 bg-gray-50 text-gray-700 font-bold rounded-xl text-sm hover:bg-gray-100 transition-colors">View Details</button>
-              <button className="flex-1 py-3 bg-white border border-rose-100 text-rose-600 font-bold rounded-xl text-sm hover:bg-rose-50 transition-colors">Deactivate</button>
+              <button 
+                onClick={() => handleDelete(ngo.userId)}
+                className="flex-1 py-3 bg-white border border-rose-100 text-rose-600 font-bold rounded-xl text-sm hover:bg-rose-50 transition-colors"
+              >
+                Delete Account
+              </button>
             </div>
           </motion.div>
         ))}

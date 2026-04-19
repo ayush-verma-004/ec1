@@ -107,4 +107,41 @@ public class UserServiceImpl implements UserService {
                 })
                 .collect(Collectors.toList());
     }
+    @Override
+    @Transactional
+    public void deleteNgo(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ValidationException("User not found"));
+
+        if (user.getRole() != UserRole.NGO) {
+            throw new ValidationException("User is not an NGO");
+        }
+
+        // Delete profile
+        ngoProfileRepository.deleteByUserId(userId);
+        
+        // Delete user
+        userRepository.delete(user);
+        
+        log.info("NGO user and profile deleted: {}", userId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUnverifiedUsersOlderThan(int minutes) {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(minutes);
+        List<User> unverifiedUsers = userRepository.findByStatusAndCreatedAtBefore(
+                UserStatus.PENDING_VERIFICATION, threshold);
+        
+        if (!unverifiedUsers.isEmpty()) {
+            for (User user : unverifiedUsers) {
+                if (user.getRole() == UserRole.NGO) {
+                    ngoProfileRepository.deleteByUserId(user.getId());
+                }
+                userRepository.delete(user);
+                log.info("Deleted unverified {} user: {} (Created at: {})", 
+                        user.getRole(), user.getEmail(), user.getCreatedAt());
+            }
+        }
+    }
 }
