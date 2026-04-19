@@ -3,36 +3,62 @@ import { motion } from 'framer-motion';
 import { Dialog, Transition } from '@headlessui/react';
 import { Search, X, CheckCircle, Leaf, AlertTriangle, FileText, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const mockCarbonCredits = [
-  { id: 'CR-822', farmer: 'EcoGrow Partners', type: 'Soil Carbon', amount: 1200, date: '2026-04-13', description: 'Transitioned 2000 acres to regenerative zero-till practices mapping directly to deep soil carbon sequestration.' },
-  { id: 'CR-823', farmer: 'Sunny Farms Co.', type: 'Biochar', amount: 450, date: '2026-04-14', description: 'Application of 100 tons of structural biochar into depleted topsoils.' },
-];
+import api from '../../utils/api';
 
 const NgoCarbonVerifications = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCredit, setSelectedCredit] = useState(null);
   const [actionType, setActionType] = useState(null); // 'VERIFY' | 'REJECT'
   const [notes, setNotes] = useState('');
-  
-  const filteredCredits = mockCarbonCredits.filter(c => 
-    c.farmer.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const [loading, setLoading] = useState(true);
+  const [verifications, setVerifications] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchPending = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/ngo-carbon/pending-verification');
+      setVerifications(response.data);
+    } catch (error) {
+      toast.error('Failed to load pending verifications');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPending();
+  }, []);
+
+  const filteredCredits = verifications.filter(c => 
+    (c.id?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (c.projectName?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAction = () => {
+  const handleAction = async () => {
     if (actionType === 'REJECT' && !notes.trim()) {
       toast.error('Rejection reason is absolutely mandatory for Carbon verification.');
       return;
     }
     
-    // API Call: PUT /api/ngo-carbon/verify OR /api/ngo-carbon/reject
-    const endpoint = actionType === 'VERIFY' ? 'verified' : 'rejected';
-    toast.success(`Carbon Credit ${selectedCredit.id} has been ${endpoint}.`);
-    
-    setActionType(null);
-    setNotes('');
-    setSelectedCredit(null);
+    setSubmitting(true);
+    try {
+      const endpoint = actionType === 'VERIFY' ? '/ngo-carbon/verify' : '/ngo-carbon/reject';
+      await api.put(endpoint, { 
+        creditId: selectedCredit.id, 
+        comments: notes || (actionType === 'VERIFY' ? 'Verified by NGO auditor' : 'Insufficient evidence')
+      });
+      
+      toast.success(`Credit ${selectedCredit.id} has been ${actionType === 'VERIFY' ? 'verified' : 'rejected'}.`);
+      setActionType(null);
+      setNotes('');
+      setSelectedCredit(null);
+      fetchPending();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Verification action failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -67,7 +93,9 @@ const NgoCarbonVerifications = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredCredits.map((credit, idx) => (
+              {loading ? (
+                <tr><td colSpan="4" className="p-10 text-center"><div className="w-8 h-8 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mx-auto" /></td></tr>
+              ) : filteredCredits.map((credit, idx) => (
                 <motion.tr 
                   key={credit.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -77,14 +105,14 @@ const NgoCarbonVerifications = () => {
                   className="hover:bg-gray-50 cursor-pointer transition-colors group"
                 >
                   <td className="p-5 font-mono text-[#12b76a] font-medium">{credit.id}</td>
-                  <td className="p-5 font-bold text-gray-900">{credit.farmer}</td>
+                  <td className="p-5 font-bold text-gray-900">{credit.farmerName || 'Farmer'}</td>
                   <td className="p-5">
-                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">{credit.type}</span>
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">{credit.carbonType || credit.type}</span>
                   </td>
-                  <td className="p-5 font-bold text-gray-900">{credit.amount} CC</td>
+                  <td className="p-5 font-bold text-gray-900">{credit.carbonAmount} CC</td>
                 </motion.tr>
               ))}
-              {filteredCredits.length === 0 && (
+              {!loading && filteredCredits.length === 0 && (
                 <tr>
                   <td colSpan="4" className="p-10 text-center text-gray-400">No carbon verification requests pending.</td>
                 </tr>
@@ -114,37 +142,35 @@ const NgoCarbonVerifications = () => {
                       </div>
 
                       <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
-                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Target Amount</p>
-                            <p className="text-2xl font-bold text-gray-900">{selectedCredit.amount} CC</p>
-                          </div>
-                          <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
-                            <p className="text-xs text-gray-500 font-bold uppercase mb-1">Methodology</p>
-                            <p className="text-xl font-bold text-gray-900">{selectedCredit.type}</p>
-                          </div>
-                        </div>
-                        
-                        <div>
-                           <h4 className="text-sm font-bold text-gray-900 mb-2">Claim Overview</h4>
-                           <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 text-gray-600 text-sm">
-                             {selectedCredit.description}
+                         <div className="grid grid-cols-2 gap-4">
+                           <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+                             <p className="text-xs text-gray-500 font-bold uppercase mb-1">Target Amount</p>
+                             <p className="text-2xl font-bold text-gray-900">{selectedCredit.carbonAmount} CC</p>
                            </div>
-                        </div>
+                           <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5">
+                             <p className="text-xs text-gray-500 font-bold uppercase mb-1">Methodology</p>
+                             <p className="text-xl font-bold text-gray-900 truncate">{selectedCredit.methodology || selectedCredit.type || 'N/A'}</p>
+                           </div>
+                         </div>
+                         
+                         <div>
+                            <h4 className="text-sm font-bold text-gray-900 mb-2">Claim Overview</h4>
+                            <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 text-gray-600 text-sm">
+                              {selectedCredit.projectDescription || selectedCredit.description || 'No description provided.'}
+                            </div>
+                         </div>
 
-                        <div>
-                           <h4 className="text-sm font-bold text-gray-900 mb-2">Scientific Evidence Attached</h4>
-                           <div className="grid grid-cols-3 gap-3">
-                             <div className="aspect-square bg-gray-50 border border-gray-100 rounded-xl flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100">
-                               <FileText size={24} className="mb-2" />
-                               <span className="text-xs font-bold">Soil Samples</span>
-                             </div>
-                             <div className="aspect-square bg-gray-50 border border-gray-100 rounded-xl flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100">
-                               <ImageIcon size={24} className="mb-2" />
-                               <span className="text-xs font-bold">Drone Scans</span>
-                             </div>
-                           </div>
-                        </div>
+                        {selectedCredit.assessmentReportUrl && (
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900 mb-2">Scientific Evidence Attached</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              <a href={selectedCredit.assessmentReportUrl} target="_blank" rel="noreferrer" className="aspect-square bg-gray-50 border border-gray-100 rounded-xl flex flex-col items-center justify-center text-[#12b76a] cursor-pointer hover:bg-gray-100 transition-colors">
+                                <FileText size={24} className="mb-2" />
+                                <span className="text-xs font-bold text-center px-2">Audit Report</span>
+                              </a>
+                            </div>
+                          </div>
+                        )}
 
                       </div>
 
@@ -191,8 +217,8 @@ const NgoCarbonVerifications = () => {
                   />
 
                   <div className="flex gap-3">
-                    <button type="button" onClick={handleAction} className={`flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-all ${actionType === 'VERIFY' ? 'bg-[#12b76a] hover:bg-[#0fa65e] shadow-[#12b76a]/20' : 'bg-red-600 hover:bg-red-700 shadow-red-600/20'}`}>
-                       Confirm {actionType === 'VERIFY' ? 'Verification' : 'Rejection'}
+                    <button type="button" onClick={handleAction} disabled={submitting} className={`flex-1 py-3 rounded-xl font-bold text-white shadow-md transition-all ${actionType === 'VERIFY' ? 'bg-[#12b76a] hover:bg-[#0fa65e] shadow-[#12b76a]/20' : 'bg-red-600 hover:bg-red-700 shadow-red-600/20'} disabled:opacity-50`}>
+                       {submitting ? 'Processing...' : `Confirm ${actionType === 'VERIFY' ? 'Verification' : 'Rejection'}`}
                     </button>
                     <button type="button" onClick={() => setActionType(null)} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">Cancel</button>
                   </div>

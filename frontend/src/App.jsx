@@ -93,24 +93,6 @@ function App() {
                 </main>
                 <Footer />
                 <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-
-                {/* Dev Demo Buttons */}
-                <div className="fixed bottom-24 right-4 md:bottom-4 z-50 flex flex-col gap-2 opacity-50 hover:opacity-100 transition-opacity">
-                  {[
-                    { label: 'Demo Gov Portal',    path: '/gov',     cls: 'bg-purple-700 hover:bg-purple-800' },
-                    { label: 'Demo NGO Portal',    path: '/ngo',     cls: 'bg-[#22c55e] hover:bg-[#16a34a]'  },
-                    { label: 'Demo Biz Portal',    path: '/biz',     cls: 'bg-blue-600 hover:bg-blue-700'    },
-                    { label: 'Demo Farmer Portal', path: '/farmer',  cls: 'bg-amber-600 hover:bg-amber-700'  },
-                  ].map(({ label, path, cls }) => (
-                    <button
-                      key={path}
-                      onClick={() => navigate(path)}
-                      className={`px-4 py-2 ${cls} text-white rounded-xl text-[10px] font-bold shadow-lg transition-colors w-full`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
               </div>
             }
           />

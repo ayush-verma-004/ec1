@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Dialog, Transition } from '@headlessui/react';
 import { Leaf, PlusCircle, X, CheckCircle, Clock, AlertCircle, Tag, PackageX, DollarSign } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
+import { getUserId } from '../../utils/auth';
 
 const mockVerifiedLands = [
   { id: 'LND-01', landAddress: 'Khasra 441, Rampur' },
@@ -26,13 +28,7 @@ const creditStatusConfig = {
   SOLD: { label: 'Sold', bg: 'bg-purple-50 text-purple-700 ring-purple-200', icon: <CheckCircle size={11} /> },
 };
 
-const mockCredits = [
-  { id: 'CR-41', projectName: 'Rampur Soil Initiative', carbonCreditType: 'SOIL_CARBON', carbonAmount: 320, validityYears: 5, creditStatus: 'VERIFIED', listedForSale: false, landId: 'LND-01' },
-  { id: 'CR-42', projectName: 'Nashik Tree Grid', carbonCreditType: 'AGROFORESTRY', carbonAmount: 500, validityYears: 10, creditStatus: 'PENDING', listedForSale: false, landId: 'LND-02' },
-  { id: 'CR-43', projectName: 'Anand Biochar Initiative', carbonCreditType: 'BIOMASS', carbonAmount: 180, validityYears: 3, creditStatus: 'LISTED', listedForSale: true, listPrice: 1150, landId: 'LND-01' },
-];
-
-const defaultForm = { landId: 'LND-01', carbonAmount: '', carbonCreditType: 'SOIL_CARBON', projectName: '', projectDescription: '', methodology: '', validityYears: 5, assessmentDate: '', assessmentReportUrl: '' };
+const defaultForm = { landId: '', carbonAmount: '', carbonCreditType: 'SOIL_CARBON', projectName: '', projectDescription: '', methodology: '', validityYears: 5, assessmentDate: '', assessmentReportUrl: '' };
 
 const FloatingInput = ({ label, value, onChange, type = 'text', ...props }) => (
   <div className="relative w-full">
@@ -47,7 +43,9 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [form, setForm] = useState(defaultForm);
   const [submitting, setSubmitting] = useState(false);
-  const [credits, setCredits] = useState(mockCredits);
+  const [loading, setLoading] = useState(true);
+  const [credits, setCredits] = useState([]);
+  const [lands, setLands] = useState([]);
   const [listingCredit, setListingCredit] = useState(null);
   const [listPrice, setListPrice] = useState('');
 
@@ -60,20 +58,51 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
     }
   }, [externalOpen, onExternalClose]);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const userId = getUserId();
+      const [creditsRes, landsRes] = await Promise.all([
+        api.get('/farmer-carbon/my-credits'),
+        api.get(`/farmer-land/farmer/${userId}`)
+      ]);
+      setCredits(creditsRes.data);
+      setLands(landsRes.data);
+    } catch (error) {
+      toast.error('Failed to load portal data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const f = (field) => ({ value: form[field], onChange: (e) => setForm(p => ({ ...p, [field]: e.target.value })) });
 
   const filtered = filterStatus === 'All' ? credits : credits.filter(c => c.creditStatus === filterStatus);
 
   const handleGenerate = async () => {
-    if (!form.projectName || !form.carbonAmount) { toast.error('Project name and carbon amount are required.'); return; }
+    if (!form.projectName || !form.carbonAmount || !form.landId) { toast.error('Required fields missing.'); return; }
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1000));
-    const newCredit = { id: `CR-${50 + credits.length}`, ...form, carbonAmount: parseFloat(form.carbonAmount), creditStatus: 'PENDING', listedForSale: false };
-    setCredits(p => [newCredit, ...p]);
-    toast.success('Carbon credit submitted for NGO verification!');
-    setSubmitting(false);
-    setIsOpen(false);
-    setForm(defaultForm);
+    try {
+      const payload = {
+        ...form,
+        carbonAmount: parseFloat(form.carbonAmount),
+        carbonType: form.carbonCreditType,
+        assessmentDate: new Date().toISOString()
+      };
+      await api.post('/farmer-carbon/create', payload);
+      toast.success('Carbon credit submitted for NGO verification!');
+      setIsOpen(false);
+      setForm(defaultForm);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Generation failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleListForSale = () => {
@@ -124,39 +153,50 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              <AnimatePresence>
-                {filtered.map((cr, i) => {
-                  const sc = creditStatusConfig[cr.creditStatus] || creditStatusConfig.PENDING;
-                  const typeObj = CREDIT_TYPES.find(t => t.value === cr.carbonCreditType);
-                  return (
-                    <motion.tr key={cr.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.04 }} className="hover:bg-gray-50/50">
-                      <td className="p-5 font-mono text-[#15803d] text-sm font-medium">{cr.id}</td>
-                      <td className="p-5 font-semibold text-gray-900 text-sm max-w-[180px] truncate">{cr.projectName}</td>
-                      <td className="p-5 text-sm">
-                        <span className="flex items-center gap-1.5 text-gray-600">{typeObj?.icon} {typeObj?.label || cr.carbonCreditType}</span>
-                      </td>
-                      <td className="p-5 font-bold text-gray-900">{cr.carbonAmount}</td>
-                      <td className="p-5 text-gray-500 text-sm">{cr.validityYears} yrs</td>
-                      <td className="p-5">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ${sc.bg}`}>{sc.icon} {sc.label}</span>
-                      </td>
-                      <td className="p-5">
-                        {cr.creditStatus === 'VERIFIED' && !cr.listedForSale && (
-                          <button onClick={() => { setListingCredit(cr); setListPrice(''); }} className="text-xs font-bold text-[#15803d] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-                            <DollarSign size={13} /> List
-                          </button>
-                        )}
-                        {cr.creditStatus === 'LISTED' && (
-                          <button onClick={() => handleRemove(cr)} className="text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-                            <PackageX size={13} /> Remove
-                          </button>
-                        )}
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </AnimatePresence>
-              {filtered.length === 0 && (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="p-10 text-center">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin" />
+                      <p className="text-xs text-emerald-800 font-bold">Fetching credits...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <AnimatePresence>
+                  {filtered.map((cr, i) => {
+                    const sc = creditStatusConfig[cr.creditStatus] || creditStatusConfig.PENDING;
+                    const typeObj = CREDIT_TYPES.find(t => t.value === cr.carbonCreditType);
+                    return (
+                      <motion.tr key={cr.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: i * 0.04 }} className="hover:bg-gray-50/50">
+                        <td className="p-5 font-mono text-[#15803d] text-sm font-medium">{cr.id}</td>
+                        <td className="p-5 font-semibold text-gray-900 text-sm max-w-[180px] truncate">{cr.projectName}</td>
+                        <td className="p-5 text-sm">
+                          <span className="flex items-center gap-1.5 text-gray-600">{typeObj?.icon} {typeObj?.label || cr.carbonCreditType}</span>
+                        </td>
+                        <td className="p-5 font-bold text-gray-900">{cr.carbonAmount}</td>
+                        <td className="p-5 text-gray-500 text-sm">{cr.validityYears} yrs</td>
+                        <td className="p-5">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ${sc.bg}`}>{sc.icon} {sc.label}</span>
+                        </td>
+                        <td className="p-5">
+                          {cr.creditStatus === 'VERIFIED' && !cr.listedForSale && (
+                            <button onClick={() => { setListingCredit(cr); setListPrice(''); }} className="text-xs font-bold text-[#15803d] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+                              <DollarSign size={13} /> List
+                            </button>
+                          )}
+                          {cr.creditStatus === 'LISTED' && (
+                            <button onClick={() => handleRemove(cr)} className="text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+                              <PackageX size={13} /> Remove
+                            </button>
+                          )}
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </AnimatePresence>
+              )}
+              {!loading && filtered.length === 0 && (
                 <tr><td colSpan="7" className="p-12 text-center text-gray-400">No credits found for this filter.</td></tr>
               )}
             </tbody>
@@ -189,7 +229,10 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
                       <div className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
                         <select value={form.landId} onChange={e => setForm(p => ({...p, landId: e.target.value}))}
                           className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-[#15803d]">
-                          {mockVerifiedLands.map(l => <option key={l.id} value={l.id}>{l.id} — {l.landAddress}</option>)}
+                          <option value="">Select a land parcel...</option>
+                          {lands.filter(l => l.landStatus === 'VERIFIED').map(l => (
+                            <option key={l.id} value={l.id}>{l.id} — {l.landAddress}</option>
+                          ))}
                         </select>
                         <p className="text-xs text-gray-400 mt-2">Only verified lands are selectable.</p>
                       </div>

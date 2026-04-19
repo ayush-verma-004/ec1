@@ -1,8 +1,9 @@
-import { ShieldCheck, LayoutDashboard, CheckSquare, BarChart2, ShoppingBag } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, CheckSquare, BarChart2, ShoppingBag, Building } from 'lucide-react';
 import UniversalNavbar from '../shared/UniversalNavbar';
 
 const links = [
   { id: 'dashboard',    label: 'Dashboard',           icon: <LayoutDashboard size={16} /> },
+  { id: 'ngos',         label: 'NGO Management',      icon: <Building size={16} /> },
   { id: 'verifications',label: 'Pending Verifications',icon: <CheckSquare size={16} /> },
   { id: 'transactions', label: 'Transaction Monitor', icon: <BarChart2 size={16} /> },
   { id: 'marketplace',  label: 'Marketplace',         icon: <ShoppingBag size={16} /> },

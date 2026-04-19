@@ -164,9 +164,9 @@ const SignInView = ({ setView, email, setEmail, onClose, loading, setLoading }) 
     setLoading(true);
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { accessToken, role, email: userEmail } = response.data;
+      const { accessToken, role, email: userEmail, userId } = response.data;
       
-      setSession(accessToken, role, userEmail);
+      setSession(accessToken, role, userEmail, userId);
       toast.success('Login successful!');
       onClose();
       

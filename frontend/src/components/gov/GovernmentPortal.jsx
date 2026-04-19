@@ -5,6 +5,7 @@ import GovDashboard from './GovDashboard';
 import GovProfile from './GovProfile';
 import GovVerifications from './GovVerifications';
 import GovTransactions from './GovTransactions';
+import GovNgoList from './GovNgoList';
 import SharedMarketplace from '../shared/SharedMarketplace';
 
 
@@ -35,14 +36,13 @@ const GovernmentPortal = ({ onSignOut }) => {
           )}
 
           {activeTab === 'profile' && (
-            <motion.div 
-              key="profile"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
+            <motion.div key="profile" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
               <GovProfile />
+            </motion.div>
+          )}
+          {activeTab === 'ngos' && (
+            <motion.div key="ngos" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+              <GovNgoList />
             </motion.div>
           )}
           {activeTab === 'verifications' && (

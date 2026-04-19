@@ -3,12 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Dialog, Transition } from '@headlessui/react';
 import { Map, PlusCircle, X, CheckCircle, Clock, AlertCircle, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const mockLands = [
-  { id: 'LND-01', landAddress: 'Khasra 441, Rampur District, UP', landArea: 12.5, soilType: 'Loamy', geoCoordinates: '(28.7, 79.2)', latitude: 28.7, longitude: 79.2, landStatus: 'VERIFIED' },
-  { id: 'LND-02', landAddress: 'Survey No. 88, Nashik, MH', landArea: 8.0, soilType: 'Clay', geoCoordinates: '(20.0, 73.7)', latitude: 20.0, longitude: 73.7, landStatus: 'PENDING_NGO_VERIFICATION' },
-  { id: 'LND-03', landAddress: 'Plot 14, Anand, Gujarat', landArea: 5.0, soilType: 'Black', geoCoordinates: '(22.5, 72.9)', latitude: 22.5, longitude: 72.9, landStatus: 'REJECTED' },
-];
+import api from '../../utils/api';
+import { getUserId } from '../../utils/auth';
 
 const soilTypes = ['Loamy', 'Clay', 'Sandy', 'Black', 'Red', 'Alluvial'];
 
@@ -34,7 +30,8 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
   const [selectedLand, setSelectedLand] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [submitting, setSubmitting] = useState(false);
-  const [lands, setLands] = useState(mockLands);
+  const [loading, setLoading] = useState(true);
+  const [lands, setLands] = useState([]);
 
   const handledRef = useRef(false);
 
@@ -45,19 +42,47 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
     }
   }, [externalOpen, onExternalClose]);
 
+  const fetchLands = async () => {
+    try {
+      setLoading(true);
+      const userId = getUserId();
+      const response = await api.get(`/farmer-land/farmer/${userId}`);
+      setLands(response.data);
+    } catch (error) {
+      toast.error('Failed to load lands');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLands();
+  }, []);
+
   const f = (field) => ({ value: form[field], onChange: (e) => setForm(p => ({ ...p, [field]: e.target.value })) });
 
   const handleSubmit = async () => {
     if (!form.landAddress || !form.landArea) { toast.error('Address and Area are required.'); return; }
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1000));
-    // API: POST /api/farmer-land/create
-    const newLand = { id: `LND-0${lands.length + 1}`, ...form, landArea: parseFloat(form.landArea), landStatus: 'PENDING_NGO_VERIFICATION' };
-    setLands(p => [newLand, ...p]);
-    toast.success('Land registered! Pending NGO verification.');
-    setSubmitting(false);
-    setIsOpen(false);
-    setForm(defaultForm);
+    try {
+      const userId = getUserId();
+      const payload = { 
+        ...form, 
+        farmerId: userId,
+        landArea: parseFloat(form.landArea),
+        latitude: parseFloat(form.latitude) || 0,
+        longitude: parseFloat(form.longitude) || 0
+      };
+      await api.post('/farmer-land/create', payload);
+      toast.success('Land registered! Pending NGO verification.');
+      setIsOpen(false);
+      setForm(defaultForm);
+      fetchLands();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to register land');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -88,7 +113,18 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
       </div>
 
       {/* Cards Grid */}
-      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1,2,3].map(i => <div key={i} className="h-48 bg-gray-100 rounded-3xl animate-pulse" />)}
+        </div>
+      ) : lands.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-200">
+          <Map className="mx-auto text-gray-300 mb-4" size={48} />
+          <p className="text-gray-500 font-medium">No lands registered yet.</p>
+          <button onClick={() => setIsOpen(true)} className="mt-4 text-[#15803d] font-bold hover:underline">Register your first parcel</button>
+        </div>
+      ) : (
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
           {lands.map((land, i) => {
             const sc = statusConfig[land.landStatus] || statusConfig.PENDING_NGO_VERIFICATION;
@@ -124,6 +160,7 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
           })}
         </AnimatePresence>
       </motion.div>
+      )}
 
       {/* Register Modal */}
       <Transition appear show={isOpen} as={Fragment}>

@@ -19,6 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import com.javnic.econe.dto.user.response.NgoDetailResponseDto;
 
 @Slf4j
 @Service
@@ -86,5 +89,22 @@ public class UserServiceImpl implements UserService {
                 .profileId(user.getProfileId())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    public List<NgoDetailResponseDto> findAllNgos() {
+        return userRepository.findByRole(UserRole.NGO).stream()
+                .map(user -> {
+                    NGOProfile profile = ngoProfileRepository.findByUserId(user.getId()).orElse(null);
+                    return NgoDetailResponseDto.builder()
+                            .userId(user.getId())
+                            .email(user.getEmail())
+                            .role(user.getRole())
+                            .status(user.getStatus())
+                            .createdAt(user.getCreatedAt())
+                            .profile(profile != null ? profileMapper.toNGOProfileDto(profile) : null)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

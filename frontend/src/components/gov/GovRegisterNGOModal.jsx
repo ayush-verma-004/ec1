@@ -2,6 +2,7 @@ import { useState, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Building, Plus, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
 
 const FloatingInput = ({ label, type = "text", value, onChange, error, hint, required, ...props }) => {
   return (
@@ -109,16 +110,66 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
     
-    // Simulate API Call POST /api/government/ngo
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast.success("Verification Partner Successfully Onboarded!", {
-      style: { borderRadius: '12px', background: '#022c22', color: '#fff' },
-      iconTheme: { primary: '#10b981', secondary: '#fff' },
-    });
-    
-    setIsSubmitting(false);
-    onClose();
+    // Prepare the Request DTO
+    const requestBody = {
+      email: formData.email,
+      password: formData.temporaryPassword,
+      profile: {
+        organizationName: formData.organizationName,
+        registrationNumber: formData.registrationNumber,
+        contactPersonName: formData.contactPersonName,
+        phoneNumber: formData.phoneNumber,
+        address: {
+          addressLine1: formData.addressLine1,
+          addressLine2: formData.addressLine2,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode
+        },
+        focusAreas: formData.focusAreas,
+        website: formData.website,
+        yearsOfOperation: parseInt(formData.yearsOfOperation),
+        latitude: parseFloat(formData.latitude) || 0,
+        longitude: parseFloat(formData.longitude) || 0,
+        allowedRadiusKm: parseFloat(formData.allowedRadius) || 100
+      }
+    };
+
+    try {
+      await api.post('/government/ngo', requestBody);
+      
+      toast.success("Verification Partner Successfully Onboarded!", {
+        style: { borderRadius: '12px', background: '#022c22', color: '#fff' },
+        iconTheme: { primary: '#10b981', secondary: '#fff' },
+      });
+      
+      // Reset form
+      setFormData({
+        email: '',
+        temporaryPassword: '',
+        organizationName: '',
+        registrationNumber: '',
+        yearsOfOperation: '',
+        website: '',
+        focusAreas: [],
+        contactPersonName: '',
+        phoneNumber: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: '',
+        pincode: '',
+        latitude: '',
+        longitude: '',
+        allowedRadius: ''
+      });
+      
+      onClose();
+    } catch (error) {
+       toast.error(error.response?.data?.message || "Failed to onboard NGO partner.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
