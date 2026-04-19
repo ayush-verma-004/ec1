@@ -13,7 +13,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,13 +45,14 @@ class OtpServiceImplTest {
                 .otp("123456")
                 .status(OtpStatus.PENDING)
                 .expiryTime(LocalDateTime.now().plusMinutes(10))
+                .createdAt(LocalDateTime.now())
                 .attemptCount(0)
                 .build();
     }
 
     @Test
     void generateAndSendOtp_Success() {
-        when(otpRepository.findByUserIdAndStatus(anyString(), eq(OtpStatus.PENDING))).thenReturn(Optional.empty());
+        when(otpRepository.findByUserIdAndStatus(anyString(), eq(OtpStatus.PENDING))).thenReturn(Collections.emptyList());
         when(otpRepository.save(any(OtpVerification.class))).thenReturn(otpVerification);
 
         OtpVerification result = otpService.generateAndSendOtp("user1", "test@example.com");
@@ -61,8 +64,8 @@ class OtpServiceImplTest {
 
     @Test
     void verifyOtp_Success() {
-        when(otpRepository.findByEmailAndStatus(anyString(), eq(OtpStatus.PENDING)))
-                .thenReturn(Optional.of(otpVerification));
+        when(otpRepository.findByEmailIgnoreCaseAndStatus(anyString(), eq(OtpStatus.PENDING)))
+                .thenReturn(new ArrayList<>(List.of(otpVerification)));
         when(otpRepository.save(any(OtpVerification.class))).thenReturn(otpVerification);
 
         boolean result = otpService.verifyOtp("test@example.com", "123456");
@@ -74,8 +77,8 @@ class OtpServiceImplTest {
 
     @Test
     void verifyOtp_InvalidOtp_ThrowsException() {
-        when(otpRepository.findByEmailAndStatus(anyString(), eq(OtpStatus.PENDING)))
-                .thenReturn(Optional.of(otpVerification));
+        when(otpRepository.findByEmailIgnoreCaseAndStatus(anyString(), eq(OtpStatus.PENDING)))
+                .thenReturn(new ArrayList<>(List.of(otpVerification)));
 
         assertThrows(ValidationException.class, () -> otpService.verifyOtp("test@example.com", "654321"));
         assertEquals(1, otpVerification.getAttemptCount());
@@ -85,8 +88,8 @@ class OtpServiceImplTest {
     @Test
     void verifyOtp_ExpiredOtp_ThrowsException() {
         otpVerification.setExpiryTime(LocalDateTime.now().minusMinutes(1));
-        when(otpRepository.findByEmailAndStatus(anyString(), eq(OtpStatus.PENDING)))
-                .thenReturn(Optional.of(otpVerification));
+        when(otpRepository.findByEmailIgnoreCaseAndStatus(anyString(), eq(OtpStatus.PENDING)))
+                .thenReturn(new ArrayList<>(List.of(otpVerification)));
 
         assertThrows(ValidationException.class, () -> otpService.verifyOtp("test@example.com", "123456"));
         assertEquals(OtpStatus.EXPIRED, otpVerification.getStatus());
@@ -96,8 +99,8 @@ class OtpServiceImplTest {
     @Test
     void verifyOtp_MaxAttemptsExceeded_ThrowsException() {
         otpVerification.setAttemptCount(5);
-        when(otpRepository.findByEmailAndStatus(anyString(), eq(OtpStatus.PENDING)))
-                .thenReturn(Optional.of(otpVerification));
+        when(otpRepository.findByEmailIgnoreCaseAndStatus(anyString(), eq(OtpStatus.PENDING)))
+                .thenReturn(new ArrayList<>(List.of(otpVerification)));
 
         assertThrows(ValidationException.class, () -> otpService.verifyOtp("test@example.com", "123456"));
         assertEquals(OtpStatus.EXPIRED, otpVerification.getStatus());

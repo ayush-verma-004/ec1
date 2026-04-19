@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -26,12 +28,12 @@ public class OtpServiceImpl implements OtpService {
     @Override
     @Transactional
     public OtpVerification generateAndSendOtp(String userId, String email) {
-        // Invalidate any existing pending OTPs
-        otpRepository.findByUserIdAndStatus(userId, OtpStatus.PENDING)
-                .ifPresent(existingOtp -> {
-                    existingOtp.setStatus(OtpStatus.EXPIRED);
-                    otpRepository.save(existingOtp);
-                });
+        // Invalidate any existing pending OTPs for this user
+        List<OtpVerification> existingOtps = otpRepository.findByUserIdAndStatus(userId, OtpStatus.PENDING);
+        for (OtpVerification existingOtp : existingOtps) {
+            existingOtp.setStatus(OtpStatus.EXPIRED);
+            otpRepository.save(existingOtp);
+        }
 
         String otp = OtpGenerator.generate();
         LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES);
@@ -58,9 +60,25 @@ public class OtpServiceImpl implements OtpService {
     @Override
     @Transactional
     public boolean verifyOtp(String email, String otp) {
-        OtpVerification otpVerification = otpRepository
-                .findByEmailIgnoreCaseAndStatus(email, OtpStatus.PENDING)
-                .orElseThrow(() -> new ValidationException("No pending OTP found for this email"));
+        List<OtpVerification> otps = otpRepository.findByEmailIgnoreCaseAndStatus(email, OtpStatus.PENDING);
+        
+        if (otps.isEmpty()) {
+            throw new ValidationException("No pending OTP found for this email");
+        }
+
+        // Sort by creation time descending and pick the latest
+        otps.sort(Comparator.comparing(OtpVerification::getCreatedAt).reversed());
+        
+        OtpVerification otpVerification = otps.get(0);
+        
+        // Mark others as expired to clean up data
+        if (otps.size() > 1) {
+            for (int i = 1; i < otps.size(); i++) {
+                OtpVerification extra = otps.get(i);
+                extra.setStatus(OtpStatus.EXPIRED);
+                otpRepository.save(extra);
+            }
+        }
 
         // Check if OTP is expired
         if (LocalDateTime.now().isAfter(otpVerification.getExpiryTime())) {

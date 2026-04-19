@@ -11,10 +11,10 @@ import java.util.List;
 
 @Repository
 public interface OtpVerificationRepository extends MongoRepository<OtpVerification, String> {
-    Optional<OtpVerification> findByUserIdAndStatus(String userId, OtpStatus status);
+    List<OtpVerification> findByUserIdAndStatus(String userId, OtpStatus status);
 
-    Optional<OtpVerification> findByEmailAndStatus(String email, OtpStatus status);
-    Optional<OtpVerification> findByEmailIgnoreCaseAndStatus(String email, OtpStatus status);
+    List<OtpVerification> findByEmailAndStatus(String email, OtpStatus status);
+    List<OtpVerification> findByEmailIgnoreCaseAndStatus(String email, OtpStatus status);
 
     List<OtpVerification> findByUserId(String userId);
 
