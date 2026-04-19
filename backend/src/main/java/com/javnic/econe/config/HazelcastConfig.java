@@ -36,6 +36,11 @@ public class HazelcastConfig {
         join.getTcpIpConfig().setEnabled(true)
                 .addMember("127.0.0.1"); // Default to localhost for now
 
+        // Enable REST API for health checks and monitoring
+        network.getRestApiConfig()
+                .setEnabled(true)
+                .enableAllGroups();
+
         return Hazelcast.newHazelcastInstance(config);
     }
 
