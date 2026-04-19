@@ -31,6 +31,12 @@ public class HazelcastConfig {
         network.setPort(5701)
                 .setPortAutoIncrement(false);
 
+        // Enable REST API for health checks (required by Render/Cloud environments)
+        RestApiConfig restApiConfig = new RestApiConfig()
+                .setEnabled(true)
+                .enableGroups(RestEndpointGroup.HEALTH_CHECK, RestEndpointGroup.CLUSTER_READ);
+        network.setRestApiConfig(restApiConfig);
+
         JoinConfig join = network.getJoin();
         join.getMulticastConfig().setEnabled(false);
         join.getTcpIpConfig().setEnabled(false);
