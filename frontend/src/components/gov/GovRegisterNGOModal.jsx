@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { X, Building, Plus, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -63,6 +63,18 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setStep('form');
+      setOtpCode(['', '', '', '', '', '']);
+      setRegisteredEmail('');
+      setErrors({});
+      setIsSubmitting(false);
+      setIsVerifying(false);
+    }
+  }, [isOpen]);
+
   const validate = () => {
     let newErrors = {};
 
@@ -106,20 +118,41 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
   };
 
   const handleOtpChange = (index, value) => {
-    if (value.length > 1) value = value.slice(-1);
+    // Only allow numbers
+    const cleanValue = value.replace(/\D/g, '');
+    if (!cleanValue && value !== '') return; // Block non-numeric
+    
+    const char = cleanValue.slice(-1);
     const newOtp = [...otpCode];
-    newOtp[index] = value;
+    newOtp[index] = char;
     setOtpCode(newOtp);
 
     // Auto-focus next input
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`).focus();
+    if (char && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
     }
   };
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`).focus();
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pastedData) {
+      const newOtp = [...otpCode];
+      pastedData.split('').forEach((char, idx) => {
+        if (idx < 6) newOtp[idx] = char;
+      });
+      setOtpCode(newOtp);
+      // Focus last filled or next empty
+      const nextIdx = Math.min(pastedData.length, 5);
+      document.getElementById(`otp-${nextIdx}`)?.focus();
     }
   };
 
@@ -132,13 +165,14 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
 
     setIsSubmitting(true);
     
+    const cleanedEmail = formData.email.trim();
     const requestBody = {
-      email: formData.email,
+      email: cleanedEmail,
       password: formData.temporaryPassword,
       profile: {
-        organizationName: formData.organizationName,
-        registrationNumber: formData.registrationNumber,
-        contactPersonName: formData.contactPersonName,
+        organizationName: formData.organizationName.trim(),
+        registrationNumber: formData.registrationNumber.trim(),
+        contactPersonName: formData.contactPersonName.trim(),
         phoneNumber: formData.phoneNumber,
         address: {
           addressLine1: formData.addressLine1,
@@ -158,7 +192,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
 
     try {
       await api.post('/government/ngo', requestBody);
-      setRegisteredEmail(formData.email);
+      setRegisteredEmail(cleanedEmail);
       
       toast.success("Account Created! OTP Sent to Partner Email.", {
         style: { borderRadius: '12px', background: '#022c22', color: '#fff' },
@@ -183,7 +217,7 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
     setIsVerifying(true);
     try {
       await api.post('/auth/verify-otp', {
-        email: registeredEmail,
+        email: registeredEmail.trim(),
         otp: fullOtp
       });
 
@@ -429,23 +463,24 @@ const GovRegisterNGOModal = ({ isOpen, onClose }) => {
                          </p>
                        </div>
 
-                       {/* Small OTP Input Group */}
-                       <div className="flex gap-2 justify-center py-2">
-                         {otpCode.map((digit, idx) => (
-                           <input
-                             key={idx}
-                             id={`otp-${idx}`}
-                             type="text"
-                             autoComplete="one-time-code"
-                             inputMode="numeric"
-                             maxLength={1}
-                             value={digit}
-                             onChange={(e) => handleOtpChange(idx, e.target.value)}
-                             onKeyDown={(e) => handleKeyDown(idx, e)}
-                             className="w-10 h-12 text-center text-xl font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-inner"
-                           />
-                         ))}
-                       </div>
+                        <div className="flex gap-2 justify-center py-2">
+                          {otpCode.map((digit, idx) => (
+                            <input
+                              key={idx}
+                              id={`otp-${idx}`}
+                              type="text"
+                              autoComplete="one-time-code"
+                              inputMode="numeric"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleOtpChange(idx, e.target.value)}
+                              onKeyDown={(e) => handleKeyDown(idx, e)}
+                              onPaste={handlePaste}
+                              onFocus={(e) => e.target.select()}
+                              className="w-10 h-10 text-center text-xl font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg focus:border-emerald-600 focus:bg-white outline-none transition-all shadow-inner"
+                            />
+                          ))}
+                        </div>
 
                        <div className="w-full space-y-3 pt-2">
                          <button
