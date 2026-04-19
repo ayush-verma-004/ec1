@@ -4,11 +4,13 @@
 
 const TOKEN_KEY = 'econe_auth_token';
 const ROLE_KEY  = 'econe_user_role';
+const EMAIL_KEY = 'econe_user_email';
 
 /** Save JWT + role after login */
-export const setSession = (token, role) => {
+export const setSession = (token, role, email) => {
   localStorage.setItem(TOKEN_KEY, token);
   if (role) localStorage.setItem(ROLE_KEY, role);
+  if (email) localStorage.setItem(EMAIL_KEY, email);
 };
 
 /** Get stored JWT */

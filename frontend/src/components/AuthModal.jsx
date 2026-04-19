@@ -8,9 +8,14 @@ import {
   Globe, Zap, ArrowRight 
 } from 'lucide-react';
 
+import { clearSession, isTokenExpired, setSession } from '../utils/auth';
+import api from '../utils/api';
+import { toast } from 'react-hot-toast';
+
 const AuthModal = ({ isOpen, onClose }) => {
   const [view, setView] = useState('SIGN_IN'); // 'SIGN_IN', 'SIGN_UP', 'OTP'
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   
   if (!isOpen) return null;
 
@@ -49,13 +54,13 @@ const AuthModal = ({ isOpen, onClose }) => {
 
             <AnimatePresence mode="wait">
               {view === 'SIGN_IN' && (
-                <SignInView key="sign-in" setView={setView} email={email} setEmail={setEmail} onClose={onClose} />
+                <SignInView key="sign-in" setView={setView} email={email} setEmail={setEmail} onClose={onClose} loading={loading} setLoading={setLoading} />
               )}
               {view === 'SIGN_UP' && (
-                <SignUpView key="sign-up" setView={setView} email={email} setEmail={setEmail} />
+                <SignUpView key="sign-up" setView={setView} email={email} setEmail={setEmail} loading={loading} setLoading={setLoading} />
               )}
               {view === 'OTP' && (
-                <OtpView key="otp" setView={setView} email={email} onClose={onClose} />
+                <OtpView key="otp" setView={setView} email={email} onClose={onClose} loading={loading} setLoading={setLoading} />
               )}
             </AnimatePresence>
           </div>
@@ -149,13 +154,35 @@ const InputField = ({ label, icon: Icon, type = "text", ...props }) => {
   );
 };
 
-const SignInView = ({ setView, email, setEmail, onClose }) => {
+const SignInView = ({ setView, email, setEmail, onClose, loading, setLoading }) => {
   const navigate = useNavigate();
 
-  const handleSignIn = (e) => {
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    onClose();
-    navigate('/farmer');
+    const password = e.target.elements[1].value;
+    
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { accessToken, role, email: userEmail } = response.data;
+      
+      setSession(accessToken, role, userEmail);
+      toast.success('Login successful!');
+      onClose();
+      
+      // Navigate based on role
+      const routes = {
+        FARMER: '/farmer',
+        BUSINESSMAN: '/biz',
+        NGO: '/ngo',
+        GOVERNMENT: '/gov'
+      };
+      navigate(routes[role] || '/');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -200,11 +227,18 @@ const SignInView = ({ setView, email, setEmail, onClose }) => {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           type="submit"
-          className="w-full py-2.5 bg-econe-dark text-white rounded-xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group text-sm"
+          disabled={loading}
+          className="w-full py-2.5 bg-econe-dark text-white rounded-xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group text-sm disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)' }}
         >
-          Sign In
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              Sign In
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </motion.button>
       </form>
 
@@ -220,7 +254,7 @@ const SignInView = ({ setView, email, setEmail, onClose }) => {
   );
 };
 
-const SignUpView = ({ setView, email, setEmail }) => {
+const SignUpView = ({ setView, email, setEmail, loading, setLoading }) => {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
 
@@ -242,10 +276,19 @@ const SignUpView = ({ setView, email, setEmail }) => {
     { id: 'GOVERNMENT', label: 'Regulator', desc: 'Policy & Audit', icon: <Briefcase size={18} /> },
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isPwdValid && role && email) {
-      setView('OTP');
+      setLoading(true);
+      try {
+        await api.post('/auth/register', { email, password, role });
+        toast.success('Registration successful! Please check your email for OTP.');
+        setView('OTP');
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Registration failed');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -343,11 +386,18 @@ const SignUpView = ({ setView, email, setEmail }) => {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           type="submit"
-          className="w-full py-3 bg-econe-dark text-white rounded-xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group mt-3 text-sm"
+          disabled={loading || !isPwdValid || !role}
+          className="w-full py-3 bg-econe-dark text-white rounded-xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group mt-3 text-sm disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)' }}
         >
-          Create Account
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              Create Account
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
         </motion.button>
       </form>
 
@@ -363,10 +413,9 @@ const SignUpView = ({ setView, email, setEmail }) => {
   );
 };
 
-const OtpView = ({ email, onClose }) => {
+const OtpView = ({ email, setView, loading, setLoading }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const inputs = useRef([]);
-  const navigate = useNavigate();
 
   const handleChange = (e, index) => {
     const value = e.target.value;
@@ -390,13 +439,20 @@ const OtpView = ({ email, onClose }) => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) inputs.current[index - 1].focus();
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = async (e) => {
     e.preventDefault();
-    if (otp.every(v => v !== '')) {
-      setTimeout(() => {
-        onClose();
-        navigate('/farmer');
-      }, 1000);
+    const otpValue = otp.join('');
+    if (otpValue.length === 6) {
+      setLoading(true);
+      try {
+        await api.post('/auth/verify-otp', { email, otp: otpValue });
+        toast.success('OTP verified! You can now sign in.');
+        setView('SIGN_IN');
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Invalid OTP');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -436,10 +492,15 @@ const OtpView = ({ email, onClose }) => {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           type="submit"
-          className="w-full py-4 bg-econe-dark text-white rounded-2xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group"
+          disabled={loading || otp.some(v => v === '')}
+          className="w-full py-4 bg-econe-dark text-white rounded-2xl font-bold shadow-xl shadow-econe-dark/10 hover:shadow-econe-dark/20 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
           style={{ background: 'linear-gradient(135deg, #064e3b 0%, #022c22 100%)' }}
         >
-          Verify & Continue
+          {loading ? (
+            <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            'Verify & Continue'
+          )}
         </motion.button>
       </form>
 
