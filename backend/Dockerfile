@@ -13,9 +13,8 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Optimizing for low-memory environments (Render Free Tier)
-# -Xmx350m: Sets max heap size to leave room for off-heap and metaspace
-# -XX:+UseSerialGC: More CPU efficient for small heaps
-ENV JAVA_OPTS="-Xmx350m -XX:+UseSerialGC -Djava.security.egd=file:/dev/./urandom"
+# -Xmx350m: Sets max heap size
+# -Djava.net.preferIPv4Stack=true: Helps with connection issues in some cloud VPCs
+ENV JAVA_OPTS="-Xmx350m -XX:+UseSerialGC -Djava.net.preferIPv4Stack=true -Djava.security.egd=file:/dev/./urandom"
 
-EXPOSE 8080
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
