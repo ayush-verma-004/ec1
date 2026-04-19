@@ -27,19 +27,16 @@ public class HazelcastConfig {
         config.addMapConfig(defaultMapConfig());
 
         // Network configuration for standalone mode (Render)
-        NetworkConfig network = config.getNetworkConfig();
-        network.setPort(5701)
-                .setPortAutoIncrement(false);
+        config.getNetworkConfig().setPort(5701);
+        config.getNetworkConfig().setPortAutoIncrement(false);
 
-        // Enable REST API for health checks (required by Render/Cloud environments)
-        RestApiConfig restApiConfig = new RestApiConfig()
-                .setEnabled(true)
-                .enableGroups(RestEndpointGroup.HEALTH_CHECK, RestEndpointGroup.CLUSTER_READ);
-        network.setRestApiConfig(restApiConfig);
+        // Enable REST API for health checks (using the exact method suggested in errors)
+        config.getNetworkConfig().getRestApiConfig().setEnabled(true);
+        config.getNetworkConfig().getRestApiConfig().enableGroups(RestEndpointGroup.HEALTH_CHECK, RestEndpointGroup.CLUSTER_READ);
 
-        JoinConfig join = network.getJoin();
-        join.getMulticastConfig().setEnabled(false);
-        join.getTcpIpConfig().setEnabled(false);
+        // Disable clustering for Render standalone mode
+        config.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
+        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
 
         return Hazelcast.newHazelcastInstance(config);
     }
