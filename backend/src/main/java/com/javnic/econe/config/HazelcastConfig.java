@@ -26,27 +26,22 @@ public class HazelcastConfig {
         config.addMapConfig(governmentMapConfig());
         config.addMapConfig(defaultMapConfig());
 
-        // Network configuration for standalone mode
+        // Network configuration for standalone mode (Render)
         NetworkConfig network = config.getNetworkConfig();
         network.setPort(5701)
-                .setPortAutoIncrement(false); // Standalone instance
+                .setPortAutoIncrement(false);
 
         JoinConfig join = network.getJoin();
         join.getMulticastConfig().setEnabled(false);
-        join.getTcpIpConfig().setEnabled(false); // Disable clustering for Render Free Tier
-
-        // Enable REST API for health checks and monitoring
-        network.getRestApiConfig()
-                .setEnabled(true)
-                .enableAllGroups();
+        join.getTcpIpConfig().setEnabled(false);
 
         return Hazelcast.newHazelcastInstance(config);
     }
 
     private MapConfig carbonCreditsMapConfig() {
         MapConfig mapConfig = new MapConfig("carbonCredits");
-        mapConfig.setTimeToLiveSeconds(600); // 10 minutes TTL
-        mapConfig.setMaxIdleSeconds(300); // 5 minutes max idle
+        mapConfig.setTimeToLiveSeconds(600);
+        mapConfig.setMaxIdleSeconds(300);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -58,7 +53,7 @@ public class HazelcastConfig {
 
     private MapConfig marketplaceListingsMapConfig() {
         MapConfig mapConfig = new MapConfig("marketplaceListings");
-        mapConfig.setTimeToLiveSeconds(300); // 5 minutes TTL
+        mapConfig.setTimeToLiveSeconds(300);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -70,7 +65,7 @@ public class HazelcastConfig {
 
     private MapConfig farmersMapConfig() {
         MapConfig mapConfig = new MapConfig("farmers");
-        mapConfig.setTimeToLiveSeconds(1800); // 30 minutes TTL
+        mapConfig.setTimeToLiveSeconds(1800);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -82,7 +77,7 @@ public class HazelcastConfig {
 
     private MapConfig landsMapConfig() {
         MapConfig mapConfig = new MapConfig("lands");
-        mapConfig.setTimeToLiveSeconds(1800); // 30 minutes TTL
+        mapConfig.setTimeToLiveSeconds(1800);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -100,7 +95,7 @@ public class HazelcastConfig {
 
     private MapConfig businessmanMapConfig() {
         MapConfig mapConfig = new MapConfig("businessmen");
-        mapConfig.setTimeToLiveSeconds(1800); // 30 minutes TTL
+        mapConfig.setTimeToLiveSeconds(1800);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -112,7 +107,7 @@ public class HazelcastConfig {
 
     private MapConfig ngosMapConfig() {
         MapConfig mapConfig = new MapConfig("ngos");
-        mapConfig.setTimeToLiveSeconds(1800); // 30 minutes TTL
+        mapConfig.setTimeToLiveSeconds(1800);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
@@ -124,7 +119,7 @@ public class HazelcastConfig {
 
     private MapConfig governmentMapConfig() {
         MapConfig mapConfig = new MapConfig("government");
-        mapConfig.setTimeToLiveSeconds(1800); // 30 minutes TTL
+        mapConfig.setTimeToLiveSeconds(1800);
 
         EvictionConfig evictionConfig = mapConfig.getEvictionConfig();
         evictionConfig.setEvictionPolicy(EvictionPolicy.LRU);
