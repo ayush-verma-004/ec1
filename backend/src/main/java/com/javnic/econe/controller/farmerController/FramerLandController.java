@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/farmer-land")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('FARMER')")
+@PreAuthorize("hasAuthority('ROLE_FARMER')")
 public class FramerLandController {
 
     private final LandService landService;

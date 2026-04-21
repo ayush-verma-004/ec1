@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/ngo-land")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('NGO')")
+@PreAuthorize("hasAuthority('ROLE_NGO')")
 public class NgoLandController {
 
     private final LandService landService;
