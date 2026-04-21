@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -39,7 +39,7 @@ public class CreateCarbonCreditRequestDto {
     private Integer validityYears;
 
     @NotNull(message = "Assessment date is required")
-    private LocalDateTime assessmentDate;
+    private LocalDate assessmentDate;
 
     private String assessmentReport;
 }

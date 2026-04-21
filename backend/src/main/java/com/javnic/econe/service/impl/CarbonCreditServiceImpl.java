@@ -67,7 +67,9 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                                 .projectName(request.getProjectName())
                                 .projectDescription(request.getProjectDescription())
                                 .validityYears(request.getValidityYears())
-                                .assessmentDate(request.getAssessmentDate())
+                                .assessmentDate(request.getAssessmentDate() != null
+                                                ? request.getAssessmentDate().atStartOfDay()
+                                                : LocalDateTime.now())
                                 .assessmentReport(request.getAssessmentReport())
                                 .status(CarbonCreditStatus.PENDING_NGO_VERIFICATION)
                                 .verificationLevel(VerificationLevel.NONE)
