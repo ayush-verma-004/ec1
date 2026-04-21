@@ -9,10 +9,9 @@ import { getUserId } from '../../utils/auth';
 const soilTypes = ['Loamy', 'Clay', 'Sandy', 'Black', 'Red', 'Alluvial'];
 
 const statusConfig = {
-  VERIFIED: { label: 'Verified', bg: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: <CheckCircle size={12} /> },
-  PENDING_NGO_VERIFICATION: { label: 'Pending NGO', bg: 'bg-amber-50 text-amber-700 ring-amber-200', icon: <Clock size={12} /> },
-  REJECTED: { label: 'Rejected', bg: 'bg-rose-50 text-rose-700 ring-rose-200', icon: <AlertCircle size={12} /> },
-  PENDING_GOVERNMENT_APPROVAL: { label: 'Pending Gov.', bg: 'bg-blue-50 text-blue-700 ring-blue-200', icon: <Clock size={12} /> },
+  VERIFIED:             { label: 'Verified',            bg: 'bg-emerald-50 text-emerald-700 ring-emerald-200', icon: <CheckCircle size={12} />,   banner: 'bg-emerald-50 border-emerald-200 text-emerald-800' },
+  PENDING_VERIFICATION: { label: 'Pending NGO Review',  bg: 'bg-amber-50 text-amber-700 ring-amber-200',     icon: <Clock size={12} />,         banner: 'bg-amber-50 border-amber-200 text-amber-800' },
+  REJECTED:             { label: 'Rejected by NGO',     bg: 'bg-rose-50 text-rose-700 ring-rose-200',        icon: <AlertCircle size={12} />,    banner: 'bg-rose-50 border-rose-200 text-rose-800' },
 };
 
 const defaultForm = { landAddress: '', landArea: '', soilType: soilTypes[0], geoCoordinates: '', latitude: '', longitude: '' };
@@ -100,10 +99,10 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
       {/* Status Summary Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total', val: lands.length },
-          { label: 'Verified', val: lands.filter(l => l.landStatus === 'VERIFIED').length },
-          { label: 'Pending', val: lands.filter(l => l.landStatus === 'PENDING_NGO_VERIFICATION').length },
-          { label: 'Rejected', val: lands.filter(l => l.landStatus === 'REJECTED').length },
+          { label: 'Total',    val: lands.length },
+          { label: 'Verified', val: lands.filter(l => l.status === 'VERIFIED').length },
+          { label: 'Pending',  val: lands.filter(l => l.status === 'PENDING_VERIFICATION').length },
+          { label: 'Rejected', val: lands.filter(l => l.status === 'REJECTED').length },
         ].map((s, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
             <p className="text-xs text-gray-400 font-medium">{s.label}</p>
@@ -127,7 +126,7 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <AnimatePresence>
           {lands.map((land, i) => {
-            const sc = statusConfig[land.landStatus] || statusConfig.PENDING_NGO_VERIFICATION;
+            const sc = statusConfig[land.status] || statusConfig.PENDING_VERIFICATION;
             return (
               <motion.div key={land.id} layout initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: i * 0.04 }}
                 whileHover={{ y: -4, boxShadow: '0 16px 40px -8px rgba(0,0,0,0.10)' }}
@@ -229,18 +228,44 @@ const FarmerLands = ({ externalOpen, onExternalClose }) => {
                         <p className="text-green-200/80 text-sm mt-1">{selectedLand.soilType} Soil</p>
                       </div>
                       <div className="p-6 space-y-4">
+
+                        {/* Verification Status Banner */}
+                        {(() => {
+                          const sc = statusConfig[selectedLand.status] || statusConfig.PENDING_VERIFICATION;
+                          const messages = {
+                            VERIFIED: '✅ Your land has been verified by the NGO. It is now eligible for carbon credit registration.',
+                            PENDING_VERIFICATION: '🕐 Your land is under review by the local NGO. You will be notified once a decision is made.',
+                            REJECTED: '❌ Your land was rejected by the NGO. Please check the details and re-submit if needed.',
+                          };
+                          return (
+                            <div className={`rounded-2xl p-4 border ${sc.banner} flex items-start gap-3`}>
+                              <span className="text-2xl mt-0.5">
+                                {selectedLand.status === 'VERIFIED' ? '✅' : selectedLand.status === 'REJECTED' ? '❌' : '🕐'}
+                              </span>
+                              <div>
+                                <p className="font-bold text-sm mb-0.5">
+                                  Status: <span className="inline-flex items-center gap-1">{sc.icon} {sc.label}</span>
+                                </p>
+                                <p className="text-xs leading-relaxed opacity-80">{messages[selectedLand.status] || messages.PENDING_VERIFICATION}</p>
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {[
-                          { label: 'Address', val: selectedLand.landAddress },
+                          { label: 'Address',     val: selectedLand.landAddress },
                           { label: 'Coordinates', val: selectedLand.geoCoordinates },
-                          { label: 'Latitude', val: selectedLand.latitude },
-                          { label: 'Longitude', val: selectedLand.longitude },
+                          { label: 'Latitude',    val: selectedLand.latitude },
+                          { label: 'Longitude',   val: selectedLand.longitude },
                         ].map(item => (
                           <div key={item.label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                             <p className="text-[10px] text-gray-400 font-bold uppercase mb-1">{item.label}</p>
                             <p className="text-sm font-semibold text-gray-900">{item.val}</p>
                           </div>
                         ))}
-                        <p className="text-xs text-gray-400 text-center pt-2">Carbon credits linked to this land: <span className="font-bold text-[#15803d]">GET /api/farmer-carbon/land/{selectedLand.id}</span></p>
+                        {selectedLand.status === 'VERIFIED' && (
+                          <p className="text-xs text-gray-400 text-center pt-2">Carbon credits linked to this land: <span className="font-bold text-[#15803d]">Check your Credits tab</span></p>
+                        )}
                       </div>
                     </>
                   )}
