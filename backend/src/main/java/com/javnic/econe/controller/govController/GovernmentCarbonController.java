@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/government-carbon")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('GOVERNMENT')")
+@PreAuthorize("hasAuthority('ROLE_GOVERNMENT')")
 public class GovernmentCarbonController {
 
     private final CarbonCreditService carbonCreditService;

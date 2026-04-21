@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/ngo-carbon")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('NGO')")
+@PreAuthorize("hasAuthority('ROLE_NGO')")
 public class NgoCarbonController {
 
     private final CarbonCreditService carbonCreditService;
