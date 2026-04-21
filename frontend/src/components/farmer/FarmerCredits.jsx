@@ -103,15 +103,20 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
     }
     setSubmitting(true);
     try {
+      // HTML date input gives "YYYY-MM-DD"; backend LocalDateTime needs "YYYY-MM-DDTHH:mm:ss"
+      const assessmentDate = form.assessmentDate
+        ? `${form.assessmentDate}T00:00:00`
+        : new Date().toISOString().split('.')[0]; // "2026-04-21T15:49:00"
+
       await api.post('/farmer-carbon/create', {
         landId:             form.landId,
         carbonAmount:       parseFloat(form.carbonAmount),
-        carbonType:         form.carbonCreditType,     // backend field name
+        carbonType:         form.carbonCreditType,
         projectName:        form.projectName,
         projectDescription: form.projectDescription,
         methodology:        form.methodology,
         validityYears:      form.validityYears,
-        assessmentDate:     form.assessmentDate || new Date().toISOString(),
+        assessmentDate,
         assessmentReport:   form.assessmentReportUrl,
       });
       toast.success('Carbon credit submitted for NGO verification!');
