@@ -43,12 +43,8 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                 Land land = landRepository.findById(request.getLandId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Land not found"));
 
-                FarmerProfile farmerProfile = farmerProfileRepository.findByUserId(userId)
-                                .orElseThrow();
-
-                String farmerId = farmerProfile.getId();
-
-                if (!land.getFarmerId().equals(farmerId)) {
+                // Ownership check: land.farmerId stores the user's ID directly
+                if (!land.getFarmerId().equals(userId)) {
                         throw new UnauthorizedException("You don't own this land");
                 }
 
@@ -57,7 +53,8 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                         throw new ValidationException("Land must be verified before creating carbon credits");
                 }
 
-                // Create carbon credit
+                // Create carbon credit — use userId as farmerId (consistent with land ownership)
+                String farmerId = userId;
                 CarbonCredit credit = CarbonCredit.builder()
                                 .farmerId(farmerId)
                                 .landId(request.getLandId())
@@ -273,15 +270,12 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                 CarbonCredit credit = carbonCreditRepository.findById(request.getCarbonCreditId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Carbon credit not found"));
 
-                FarmerProfile farmerProfile = farmerProfileRepository.findByUserId(userId)
-                                .orElseThrow();
-
-                String sellerId = farmerProfile.getId();
-
-                // Verify ownership
-                if (!credit.getCurrentOwnerId().equals(sellerId)) {
+                // Ownership check: currentOwnerId was stored as userId
+                if (!credit.getCurrentOwnerId().equals(userId)) {
                         throw new UnauthorizedException("You don't own this credit");
                 }
+
+                String sellerId = userId;
 
                 // Must be active and verified
                 if (credit.getStatus() != CarbonCreditStatus.ACTIVE) {
@@ -340,11 +334,8 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
 
         @Override
         public List<CarbonCreditResponseDto> getSellerListedCredits(String sellerId) {
-                FarmerProfile farmerProfile = farmerProfileRepository.findByUserId(sellerId)
-                                .orElseThrow();
-                String farmerId = farmerProfile.getId();
-
-                return carbonCreditRepository.findByCurrentOwnerId(farmerId)
+                // sellerId here is the userId passed from the controller
+                return carbonCreditRepository.findByCurrentOwnerId(sellerId)
                                 .stream()
                                 .filter(CarbonCredit::getIsListedForSale)
                                 .map(this::mapToResponseDto)
