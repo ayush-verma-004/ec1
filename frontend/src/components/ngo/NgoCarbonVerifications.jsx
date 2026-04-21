@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, Transition } from '@headlessui/react';
 import { Search, X, CheckCircle, Leaf, AlertTriangle, FileText, Image as ImageIcon } from 'lucide-react';
@@ -44,10 +44,10 @@ const NgoCarbonVerifications = () => {
     setSubmitting(true);
     try {
       const endpoint = actionType === 'VERIFY' ? '/ngo-carbon/verify' : '/ngo-carbon/reject';
-      await api.put(endpoint, { 
-        creditId: selectedCredit.id, 
-        comments: notes || (actionType === 'VERIFY' ? 'Verified by NGO auditor' : 'Insufficient evidence')
-      });
+      const body = actionType === 'VERIFY'
+        ? { carbonCreditId: selectedCredit.id, approved: true,  verificationNotes: notes || 'Verified by NGO auditor' }
+        : { carbonCreditId: selectedCredit.id, approved: false, rejectionReason: notes };
+      await api.put(endpoint, body);
       
       toast.success(`Credit ${selectedCredit.id} has been ${actionType === 'VERIFY' ? 'verified' : 'rejected'}.`);
       setActionType(null);
