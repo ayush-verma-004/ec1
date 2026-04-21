@@ -4,38 +4,72 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Search, X, CheckCircle, MapPin, Maximize, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const mockLandRegs = [
-  { id: 'LND-901', farmer: 'Sunny Farms Co.', location: 'Northern Highlands (34.2, -118.1)', area: 500, status: 'Pending Review', description: 'Acquired previous corn farmland to transition entirely to bio-diverse agroforestry patterns.', soilType: 'Loamy', lastAudited: 'Never' },
-  { id: 'LND-902', farmer: 'Green Valley Init', location: 'Midwest Plains (42.0, -93.6)', area: 1200, status: 'Pending Review', description: 'Large scale regenerative agriculture implementation targeting no-till methodologies.', soilType: 'Clay', lastAudited: '2023-01-12' },
-];
+import api from '../../utils/api';
+import { useEffect } from 'react';
 
 const NgoLandVerifications = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLand, setSelectedLand] = useState(null);
   const [isRejecting, setIsRejecting] = useState(false);
   const [notes, setNotes] = useState('');
+  const [lands, setLands] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const filteredLand = mockLandRegs.filter(c => 
-    c.farmer.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const fetchLands = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/ngo-land/pending');
+      setLands(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch land registrations');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLands();
+  }, []);
+
+  const filteredLand = lands.filter(c => 
+    c.farmerName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     c.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleVerify = () => {
-    // API Call: PUT /api/ngo-land/{landId}/verify
-    toast.success(`Land ${selectedLand.id} verified successfully!`);
-    setSelectedLand(null);
+  const handleVerify = async () => {
+    setSubmitting(true);
+    try {
+      await api.put(`/ngo-land/${selectedLand.id}/verify`);
+      toast.success(`Land ${selectedLand.id} verified successfully!`);
+      setSelectedLand(null);
+      fetchLands();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Verification failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!notes.trim()) {
       toast.error('Rejection reason is required.');
       return;
     }
-    // API Call: PUT /api/ngo-land/{landId}/reject
-    toast.success(`Land ${selectedLand.id} has been rejected.`);
-    setIsRejecting(false);
-    setNotes('');
-    setSelectedLand(null);
+    setSubmitting(true);
+    try {
+      await api.put(`/ngo-land/${selectedLand.id}/reject`);
+      toast.success(`Land ${selectedLand.id} has been rejected.`);
+      setIsRejecting(false);
+      setNotes('');
+      setSelectedLand(null);
+      fetchLands();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Rejection failed');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -70,7 +104,9 @@ const NgoLandVerifications = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredLand.map((land, idx) => (
+              {loading ? (
+                <tr><td colSpan="4" className="p-10 text-center"><div className="w-8 h-8 border-4 border-[#12b76a]/20 border-t-[#12b76a] rounded-full animate-spin mx-auto" /></td></tr>
+              ) : filteredLand.map((land, idx) => (
                 <motion.tr 
                   key={land.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -80,14 +116,20 @@ const NgoLandVerifications = () => {
                   className="hover:bg-gray-50 cursor-pointer transition-colors group"
                 >
                   <td className="p-5 font-mono text-[#12b76a] font-medium">{land.id}</td>
-                  <td className="p-5 font-bold text-gray-900">{land.farmer}</td>
-                  <td className="p-5 text-gray-600 text-sm">{land.location}</td>
-                  <td className="p-5 font-semibold text-gray-900">{land.area} acres</td>
+                  <td className="p-5">
+                    <div className="font-bold text-gray-900">{land.farmerName}</div>
+                    <div className="text-xs text-gray-400">{land.farmerId}</div>
+                  </td>
+                  <td className="p-5">
+                    <div className="text-gray-600 text-sm">{land.landAddress}</div>
+                    <div className="text-xs text-[#12b76a] font-medium">{land.distanceFromNgoKm.toFixed(2)} km away</div>
+                  </td>
+                  <td className="p-5 font-semibold text-gray-900">{land.landArea} acres</td>
                 </motion.tr>
               ))}
-              {filteredLand.length === 0 && (
+              {!loading && filteredLand.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="p-10 text-center text-gray-400">No land verifications pending.</td>
+                  <td colSpan="4" className="p-10 text-center text-gray-400">No land verifications pending in your area.</td>
                 </tr>
               )}
             </tbody>
@@ -138,7 +180,8 @@ const NgoLandVerifications = () => {
                         <div className="p-6 flex-1 space-y-6">
                           <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100">
                             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Farmer Overview</h3>
-                            <p className="text-2xl font-bold text-gray-900">{selectedLand.farmer}</p>
+                            <p className="text-2xl font-bold text-gray-900">{selectedLand.farmerName}</p>
+                            <p className="text-sm font-medium text-gray-600 mt-1">Phone: {selectedLand.farmerPhone}</p>
                             <p className="text-sm font-mono text-[#12b76a] mt-1">{selectedLand.id}</p>
                           </div>
 
@@ -146,7 +189,7 @@ const NgoLandVerifications = () => {
                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                               <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Area</p>
                               <p className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Maximize size={18} className="text-gray-400" /> {selectedLand.area} Acres
+                                <Maximize size={18} className="text-gray-400" /> {selectedLand.landArea} Acres
                               </p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
@@ -158,14 +201,16 @@ const NgoLandVerifications = () => {
                           <div>
                             <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Land Coordinates & Location</h3>
                             <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-600 font-mono">
-                              {selectedLand.location}
+                              {selectedLand.landAddress} <br/>
+                              ({selectedLand.latitude}, {selectedLand.longitude}) <br/>
+                              <span className="text-[#12b76a] font-bold">{selectedLand.distanceFromNgoKm.toFixed(2)} km from your center</span>
                             </div>
                           </div>
 
                           <div>
-                            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Physical Audit Information</h3>
-                            <div className="text-gray-600 leading-relaxed text-sm bg-gray-50 p-4 rounded-xl">
-                              {selectedLand.description}
+                            <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Geo-Coordinates Hash</h3>
+                            <div className="text-gray-600 leading-relaxed text-sm bg-gray-50 p-4 rounded-xl font-mono truncate">
+                              {selectedLand.geoCoordinates}
                             </div>
                           </div>
 
@@ -175,13 +220,15 @@ const NgoLandVerifications = () => {
                       <div className="p-6 bg-gray-50 flex gap-4 sticky bottom-0 border-t border-gray-200">
                         <button 
                           onClick={handleVerify}
-                          className="flex-1 py-3.5 bg-[#12b76a] hover:bg-[#0fa65e] text-white rounded-xl font-bold shadow-lg shadow-[#12b76a]/20 flex justify-center items-center gap-2 transition-colors"
+                          disabled={submitting}
+                          className="flex-1 py-3.5 bg-[#12b76a] hover:bg-[#0fa65e] text-white rounded-xl font-bold shadow-lg shadow-[#12b76a]/20 flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
                         >
-                          <CheckCircle size={20} /> Verify Land
+                          <CheckCircle size={20} /> {submitting ? 'Processing...' : 'Verify Land'}
                         </button>
                         <button 
                           onClick={() => setIsRejecting(true)}
-                          className="px-8 py-3.5 bg-white text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-50 transition-colors"
+                          disabled={submitting}
+                          className="px-8 py-3.5 bg-white text-red-600 border border-red-200 rounded-xl font-bold hover:bg-red-50 transition-colors disabled:opacity-50"
                         >
                           Reject
                         </button>
@@ -220,7 +267,9 @@ const NgoLandVerifications = () => {
                   />
 
                   <div className="flex gap-3">
-                    <button type="button" onClick={handleReject} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow-md shadow-red-600/20 transition-all">Reject Land</button>
+                    <button type="button" onClick={handleReject} disabled={submitting} className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold shadow-md shadow-red-600/20 transition-all disabled:opacity-50">
+                      {submitting ? 'Rejecting...' : 'Reject Land'}
+                    </button>
                     <button type="button" onClick={() => setIsRejecting(false)} className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-all">Cancel</button>
                   </div>
                 </Dialog.Panel>
