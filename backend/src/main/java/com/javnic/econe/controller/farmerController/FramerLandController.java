@@ -30,7 +30,7 @@ public class FramerLandController {
         return landService.getLandsByFarmer(farmerId);
     }
 
-    @GetMapping("/{landid}")
+    @GetMapping("/{landId}")
     public Land getLand(@PathVariable String landId) {
         return landService.getLand(landId);
     }

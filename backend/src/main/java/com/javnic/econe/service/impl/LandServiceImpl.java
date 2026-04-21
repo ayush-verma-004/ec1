@@ -2,11 +2,14 @@ package com.javnic.econe.service.impl;
 
 import com.javnic.econe.dto.land.request.CreateLandRequestDto;
 import com.javnic.econe.dto.land.response.CreateLandResponseDto;
+import com.javnic.econe.dto.land.response.LandVerificationResponseDto;
+import com.javnic.econe.entity.FarmerProfile;
 import com.javnic.econe.entity.Land;
 import com.javnic.econe.entity.NGOProfile;
 import com.javnic.econe.enums.LandStatus;
 import com.javnic.econe.exception.UnauthorizedException;
 import com.javnic.econe.mapper.LandMapper;
+import com.javnic.econe.repository.FarmerProfileRepository;
 import com.javnic.econe.repository.LandRepository;
 import com.javnic.econe.repository.NGOProfileRepository;
 import com.javnic.econe.security.SecurityUtils;
@@ -28,11 +31,11 @@ public class LandServiceImpl implements LandService {
 
     private final LandRepository landRepository;
     private final NGOProfileRepository ngoProfileRepository;
+    private final FarmerProfileRepository farmerProfileRepository;
     private final LandMapper landMapper;
     private final SecurityUtils securityUtils;
 
     @Override
-    // @CachePut removed: Return type is DTO but cache expects Entity
     public CreateLandResponseDto createLand(CreateLandRequestDto createLandRequestDto) {
 
         Land land = new Land();
@@ -44,8 +47,10 @@ public class LandServiceImpl implements LandService {
         land.setStatus(LandStatus.PENDING_VERIFICATION);
         land.setLatitude(createLandRequestDto.getLatitude());
         land.setLongitude(createLandRequestDto.getLongitude());
-        landRepository.save(land);
-        return landMapper.toCreateLandResponseDto(createLandRequestDto, LandStatus.PENDING_VERIFICATION);
+        Land savedLand = landRepository.save(land);
+        CreateLandResponseDto response = landMapper.toCreateLandResponseDto(createLandRequestDto, LandStatus.PENDING_VERIFICATION);
+        response.setId(savedLand.getId());
+        return response;
     }
 
     @Override
@@ -82,69 +87,73 @@ public class LandServiceImpl implements LandService {
     }
 
     @Override
-    public List<Land> getAllUnverifyLandsInsideNgoArea() {
-        String ngoId = " ";
+    public List<LandVerificationResponseDto> getAllUnverifyLandsInsideNgoArea() {
+        String ngoUserId = securityUtils.getCurrentUser().getId();
 
-        // String nId = securityUtils.getCurrentUserId();
-
-        NGOProfile ngoProfile = ngoProfileRepository.findById(ngoId)
-                .orElseThrow();
+        NGOProfile ngoProfile = ngoProfileRepository.findByUserId(ngoUserId)
+                .orElseThrow(() -> new RuntimeException("NGO Profile not found"));
 
         double ngoLat = ngoProfile.getLatitude();
         double nogLon = ngoProfile.getLongitude();
-
         double allowedRadius = ngoProfile.getAllowedRadiusKm();
 
         List<Land> allLands = landRepository.findAll();
-        List<Land> insideArea = new ArrayList<>();
+        List<LandVerificationResponseDto> result = new ArrayList<>();
 
         for (Land land : allLands) {
-
-            LandStatus landStatus = land.getStatus();
-
-            double distance = GeoUtil.distanceInKm(
-                    ngoLat, nogLon, land.getLatitude(), land.getLongitude());
-
-            if (distance <= allowedRadius && landStatus == LandStatus.PENDING_VERIFICATION) {
-                insideArea.add(land);
+            if (land.getStatus() == LandStatus.PENDING_VERIFICATION) {
+                double distance = GeoUtil.distanceInKm(ngoLat, nogLon, land.getLatitude(), land.getLongitude());
+                if (distance <= allowedRadius) {
+                    result.add(mapToVerificationDto(land, distance));
+                }
             }
         }
-
-        return insideArea;
+        return result;
     }
 
     @Override
-    public List<Land> getAllVerifyLandsInsideNgoArea() {
-        String ngoId = " ";
+    public List<LandVerificationResponseDto> getAllVerifyLandsInsideNgoArea() {
+        String ngoUserId = securityUtils.getCurrentUser().getId();
 
-        // String nId = securityUtils.getCurrentUserId();
-
-        // String currentUserId = securityUtils.getCurrentUser().getId();
-
-        NGOProfile ngoProfile = ngoProfileRepository.findById(ngoId)
-                .orElseThrow();
+        NGOProfile ngoProfile = ngoProfileRepository.findByUserId(ngoUserId)
+                .orElseThrow(() -> new RuntimeException("NGO Profile not found"));
 
         double ngoLat = ngoProfile.getLatitude();
         double nogLon = ngoProfile.getLongitude();
-
         double allowedRadius = ngoProfile.getAllowedRadiusKm();
 
         List<Land> allLands = landRepository.findAll();
-        List<Land> insideArea = new ArrayList<>();
+        List<LandVerificationResponseDto> result = new ArrayList<>();
 
         for (Land land : allLands) {
-
-            LandStatus landStatus = land.getStatus();
-
-            double distance = GeoUtil.distanceInKm(
-                    ngoLat, nogLon, land.getLatitude(), land.getLongitude());
-
-            if (distance <= allowedRadius && landStatus == LandStatus.PENDING_VERIFICATION) {
-                insideArea.add(land);
+            if (land.getStatus() == LandStatus.VERIFIED) {
+                double distance = GeoUtil.distanceInKm(ngoLat, nogLon, land.getLatitude(), land.getLongitude());
+                if (distance <= allowedRadius) {
+                    result.add(mapToVerificationDto(land, distance));
+                }
             }
         }
+        return result;
+    }
 
-        return insideArea;
+    private LandVerificationResponseDto mapToVerificationDto(Land land, double distance) {
+        FarmerProfile farmerProfile = farmerProfileRepository.findByUserId(land.getFarmerId())
+                .orElse(null);
+
+        return LandVerificationResponseDto.builder()
+                .id(land.getId())
+                .farmerId(land.getFarmerId())
+                .farmerName(farmerProfile != null ? farmerProfile.getFullName() : "Unknown Farmer")
+                .farmerPhone(farmerProfile != null ? farmerProfile.getPhoneNumber() : "N/A")
+                .landArea(land.getLandArea())
+                .landAddress(land.getLandAddress())
+                .soilType(land.getSoilType())
+                .geoCoordinates(land.getGeoCoordinates())
+                .latitude(land.getLatitude())
+                .longitude(land.getLongitude())
+                .status(land.getStatus())
+                .distanceFromNgoKm(distance)
+                .build();
     }
 
     @Override
@@ -181,15 +190,13 @@ public class LandServiceImpl implements LandService {
     @Override
     @CachePut(value = "lands", key = "#landId")
     public Land rejectLand(String landId) {
-        Land land = getLand(landId);
-        land.setStatus(LandStatus.REJECTED);
-
         String ngoId = securityUtils.getCurrentUser().getId();
 
         NGOProfile ngoProfile = ngoProfileRepository.findByUserId(ngoId)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("NGO Profile not found"));
 
-        // Land lan = getLand(landId); // Removed redundant call
+        Land land = landRepository.findById(landId)
+                .orElseThrow(() -> new RuntimeException("Land not found with id: " + landId));
 
         double distance = GeoUtil.distanceInKm(ngoProfile.getLatitude(), ngoProfile.getLongitude(),
                 land.getLatitude(), land.getLongitude());
