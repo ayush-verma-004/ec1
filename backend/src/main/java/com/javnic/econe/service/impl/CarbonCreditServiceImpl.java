@@ -79,11 +79,14 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                                 .createdBy(farmerId)
                                 .build();
 
-                // Generate Public Hash Document
+                // Save first so MongoDB assigns a real ID
+                credit = carbonCreditRepository.save(credit);
+
+                // Generate Public Hash Document using the real credit ID
                 String publicHash = projectHashService.createHashDocument(credit);
                 credit.setPublicHash(publicHash);
+                credit = carbonCreditRepository.save(credit); // persist the publicHash field
 
-                credit = carbonCreditRepository.save(credit);
                 log.info("Carbon credit created: {} by farmer: {}", credit.getId(), farmerId);
 
                 return mapToResponseDto(credit);
