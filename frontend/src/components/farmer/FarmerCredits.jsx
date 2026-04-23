@@ -136,7 +136,7 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
     if (!price || price <= 0) { toast.error('Enter a valid price.'); return; }
     setListSubmitting(true);
     try {
-      await api.put('/farmer-carbon/list-for-sale', {
+      await api.post('/farmer-carbon/list-for-sale', {
         carbonCreditId: listingCredit.id,
         pricePerTonne:  price,
       });
@@ -154,7 +154,7 @@ const FarmerCredits = ({ externalOpen, onExternalClose }) => {
   // Real API call for removing from sale
   const handleRemove = async (credit) => {
     try {
-      await api.put(`/farmer-carbon/remove-from-sale/${credit.id}`);
+      await api.put(`/farmer-carbon/${credit.id}/remove-from-sale`);
       toast.success(`${credit.id} removed from marketplace.`);
       fetchData();
     } catch (error) {
