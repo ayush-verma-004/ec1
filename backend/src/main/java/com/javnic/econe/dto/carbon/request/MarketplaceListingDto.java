@@ -23,4 +23,10 @@ public class MarketplaceListingDto {
     private String verificationLevel;
     private LocalDateTime validUntil;
     private LocalDateTime listedAt;
+    
+    // Additional fields for rich marketplace UI
+    private String projectName;
+    private String projectDescription;
+    private String ngoName;
+    private String govName;
 }

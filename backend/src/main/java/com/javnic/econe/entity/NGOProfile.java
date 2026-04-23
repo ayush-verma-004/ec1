@@ -46,7 +46,7 @@ public class NGOProfile {
 
     private double allowedRadiusKm;
 
-//    private boolean isProfileUpdated = false;
+    // private boolean isProfileUpdated = false;
 
     @Data
     @Builder

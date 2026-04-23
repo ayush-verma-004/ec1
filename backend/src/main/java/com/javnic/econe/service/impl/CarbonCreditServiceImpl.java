@@ -417,12 +417,36 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
 
         private MarketplaceListingDto mapToMarketplaceDto(CarbonCredit credit) {
                 Land land = landRepository.findById(credit.getLandId()).orElse(null);
-                User seller = userRepository.findById(credit.getSellerId()).orElse(null);
+                
+                // Fetch the seller (could be a Farmer or Businessman). Here we assume it's the current owner's user account.
+                // We'll use their email/name as a fallback.
+                String sellerNameStr = "Unknown";
+                if (credit.getSellerId() != null) {
+                    FarmerProfile farmer = farmerProfileRepository.findByUserId(credit.getSellerId()).orElse(null);
+                    if (farmer != null) {
+                        sellerNameStr = farmer.getFullName();
+                    } else {
+                        User seller = userRepository.findById(credit.getSellerId()).orElse(null);
+                        sellerNameStr = seller != null ? seller.getEmail() : "Unknown";
+                    }
+                }
+                
+                String ngoNameStr = "Unknown";
+                if (credit.getNgoId() != null) {
+                    NGOProfile ngo = ngoProfileRepository.findByUserId(credit.getNgoId()).orElse(null);
+                    ngoNameStr = ngo != null ? ngo.getOrganizationName() : "Unknown";
+                }
+                
+                String govNameStr = "Unknown";
+                if (credit.getGovernmentId() != null) {
+                    // Try to get gov profile or fallback
+                    govNameStr = credit.getGovVerifierName() != null ? credit.getGovVerifierName() : "Gov Authority";
+                }
 
                 return MarketplaceListingDto.builder()
                                 .id(credit.getId())
                                 .sellerId(credit.getSellerId())
-                                .sellerName(seller != null ? seller.getEmail() : "Unknown")
+                                .sellerName(sellerNameStr)
                                 .carbonAmount(credit.getCarbonAmount())
                                 .carbonType(credit.getCarbonType())
                                 .pricePerTonne(credit.getPricePerTonne())
@@ -431,6 +455,10 @@ public class CarbonCreditServiceImpl implements CarbonCreditService {
                                 .verificationLevel(credit.getVerificationLevel().name())
                                 .validUntil(credit.getValidUntil())
                                 .listedAt(credit.getUpdatedAt())
+                                .projectName(credit.getProjectName())
+                                .projectDescription(credit.getProjectDescription())
+                                .ngoName(ngoNameStr)
+                                .govName(govNameStr)
                                 .build();
         }
 }
