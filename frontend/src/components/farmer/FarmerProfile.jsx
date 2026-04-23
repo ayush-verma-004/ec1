@@ -2,8 +2,18 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sprout, Edit3, Save, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
+import { useEffect } from 'react';
 
 const soilTypes = ['Loamy', 'Sandy', 'Clay', 'Black', 'Red', 'Alluvial'];
+
+const emptyProfile = {
+  fullName: '', phoneNumber: '', aadharNumber: '',
+  village: '', district: '', state: '', pincode: '',
+  landAreaAcres: '', soilType: 'Loamy', irrigationAvailable: false,
+  bankAccountNumber: '', ifscCode: '',
+  cropTypes: [],
+};
 
 const FloatingInput = ({ label, value, onChange, disabled, type = 'text', error, hint, ...props }) => (
   <div className="relative w-full">
@@ -17,20 +27,37 @@ const FloatingInput = ({ label, value, onChange, disabled, type = 'text', error,
   </div>
 );
 
-const mockProfile = {
-  fullName: 'Rajendra Kumar', phoneNumber: '9876543210', aadharNumber: '234500001234',
-  village: 'Rampur', district: 'Bareilly', state: 'Uttar Pradesh', pincode: '243001',
-  landAreaAcres: 12.5, soilType: 'Loamy', irrigationAvailable: true,
-  bankAccountNumber: '0041010009876', ifscCode: 'SBIN0002044',
-  cropTypes: ['Wheat', 'Maize'],
-};
+
 
 const FarmerProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [profileExists] = useState(true);
-  const [form, setForm] = useState(mockProfile);
+  const [profileExists, setProfileExists] = useState(false);
+  const [form, setForm] = useState(emptyProfile);
   const [errors, setErrors] = useState({});
   const [cropInput, setCropInput] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/farmer-profile/get-farmer');
+        if (response.data) {
+          setForm(response.data);
+          setProfileExists(true);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setProfileExists(false);
+          setIsEditing(true); // Auto edit if new
+        } else {
+          toast.error('Failed to fetch profile.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const f = (field) => ({
     value: form[field],
@@ -52,10 +79,20 @@ const FarmerProfile = () => {
 
   const handleSave = async () => {
     if (!validate()) { toast.error('Please fix the validation errors.'); return; }
-    await new Promise(r => setTimeout(r, 700));
-    // API: PUT /api/farmer-profile/update-farmer OR POST /api/farmer-profile/create-farmer
-    toast.success('Profile updated successfully!', { style: { background: '#15803d', color: '#fff' }, iconTheme: { primary: '#fff', secondary: '#15803d' } });
-    setIsEditing(false);
+    try {
+      const payload = { ...form, landAreaAcres: parseFloat(form.landAreaAcres) };
+      if (profileExists) {
+        await api.put('/farmer-profile/update-farmer', payload);
+        toast.success('Profile updated successfully!', { style: { background: '#15803d', color: '#fff' }, iconTheme: { primary: '#fff', secondary: '#15803d' } });
+      } else {
+        await api.post('/farmer-profile/create-farmer', payload);
+        toast.success('Profile created successfully!', { style: { background: '#15803d', color: '#fff' }, iconTheme: { primary: '#fff', secondary: '#15803d' } });
+        setProfileExists(true);
+      }
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save profile.');
+    }
   };
 
   const addCrop = (e) => {
@@ -70,6 +107,12 @@ const FarmerProfile = () => {
 
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-econe-emerald"></div>
+        </div>
+      ) : (
+        <>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-econe-dark">Farmer Profile</h1>
@@ -204,6 +247,8 @@ const FarmerProfile = () => {
           </div>
         </motion.div>
       </div>
+      </>
+      )}
     </div>
   );
 };

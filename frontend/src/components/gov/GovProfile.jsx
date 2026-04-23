@@ -1,31 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, MapPin, Phone, Building, Hash, Edit3, Check, User } from 'lucide-react';
+import toast from 'react-hot-toast';
+import api from '../../utils/api';
 
 const GovProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Mock mapped DTO data (from /api/government-profile)
   const [profileData, setProfileData] = useState({
-    departmentName: 'Ministry of Environment, Forest & Climate Change',
-    officerName: 'Dr. Jane Smith',
-    designation: 'Chief Sustainability Officer',
-    employeeId: 'GOV-IND-2026-X89',
-    phoneNumber: '+1 (555) 019-2831',
-    officeAddress: '100 Green Avenue, Sector 4, Capital City',
+    departmentName: '',
+    officerName: '',
+    designation: '',
+    employeeId: '',
+    phoneNumber: '',
+    officeAddress: '',
   });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/government-profile/government');
+        if (response.data) {
+          setProfileData(response.data);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setIsEditing(true);
+        } else {
+          toast.error('Failed to fetch profile.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate PUT request
-    setTimeout(() => {
+    try {
+      await api.put('/government-profile/update', profileData);
+      toast.success('Officer profile updated successfully!');
       setIsEditing(false);
-    }, 500);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update profile.');
+    }
   };
 
   const containerVariants = {
@@ -40,6 +65,12 @@ const GovProfile = () => {
       initial="hidden"
       animate="show"
     >
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-econe-emerald"></div>
+        </div>
+      ) : (
+        <>
       <div className="flex justify-between items-end mb-4">
         <div>
           <h1 className="text-3xl font-bold text-econe-dark">Officer Profile</h1>
@@ -195,6 +226,8 @@ const GovProfile = () => {
         </div>
 
       </div>
+      </>
+      )}
     </motion.div>
   );
 };

@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/businessman-transaction/**").hasAuthority("ROLE_BUSINESSMAN")
                         .requestMatchers("/api/government-carbon/**").hasAuthority("ROLE_GOVERNMENT")
                         .requestMatchers("/api/government-transaction/**").hasAuthority("ROLE_GOVERNMENT")
+                        .requestMatchers("/api/marketplace/listings", "/api/marketplace/stats").permitAll()
                         .requestMatchers("/api/marketplace/**").authenticated()
                         .requestMatchers("/api/transaction/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()

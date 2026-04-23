@@ -2,6 +2,16 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, Edit3, Save, X } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
+import { useEffect } from 'react';
+
+const emptyProfile = {
+  fullName: '', phoneNumber: '', companyName: '',
+  gstNumber: '', panNumber: '', bankAccountNumber: '',
+  ifscCode: '', addressLine1: '', addressLine2: '',
+  city: '', state: '', pincode: '', businessType: 'Manufacturing',
+  interestedCommodities: [],
+};
 
 const FloatingInput = ({ label, value, onChange, disabled, type = 'text', hint, error, ...props }) => (
   <div className="relative w-full">
@@ -28,30 +38,38 @@ const FloatingInput = ({ label, value, onChange, disabled, type = 'text', hint, 
   </div>
 );
 
-const mockProfile = {
-  fullName: 'Rajiv Mehta',
-  phoneNumber: '9876543210',
-  companyName: 'IndusTrade Corporation',
-  gstNumber: '29ABCDE1234F1Z5',
-  panNumber: 'ABCDE1234F',
-  bankAccountNumber: '0041010001234',
-  ifscCode: 'HDFC0000041',
-  addressLine1: '12 Commerce Avenue',
-  addressLine2: 'Tower B, 5th Floor',
-  city: 'Bengaluru',
-  state: 'Karnataka',
-  pincode: '560001',
-  businessType: 'Manufacturing',
-  interestedCommodities: ['Soil Carbon', 'Forestry'],
-};
 
 const businessTypes = ['Manufacturing', 'Technology', 'Agriculture', 'Energy', 'Logistics', 'Finance', 'Retail', 'Other'];
 
 const BizProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState(mockProfile);
+  const [profileExists, setProfileExists] = useState(false);
+  const [form, setForm] = useState(emptyProfile);
   const [errors, setErrors] = useState({});
   const [commodityInput, setCommodityInput] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/businessman-profile/get-businessman');
+        if (response.data) {
+          setForm(response.data);
+          setProfileExists(true);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setProfileExists(false);
+          setIsEditing(true);
+        } else {
+          toast.error('Failed to fetch profile.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const f = (field) => ({
     value: form[field],
@@ -73,10 +91,19 @@ const BizProfile = () => {
 
   const handleSave = async () => {
     if (!validate()) { toast.error('Please fix validation errors.'); return; }
-    await new Promise(r => setTimeout(r, 700));
-    // API: PUT /api/businessman-profile/update-businessman
-    toast.success('Business profile updated successfully!', { style: { background: '#022c22', color: '#fff' }, iconTheme: { primary: '#10b981', secondary: '#fff' } });
-    setIsEditing(false);
+    try {
+      if (profileExists) {
+        await api.put('/businessman-profile/update-businessman', form);
+        toast.success('Business profile updated successfully!', { style: { background: '#022c22', color: '#fff' }, iconTheme: { primary: '#10b981', secondary: '#fff' } });
+      } else {
+        await api.post('/businessman-profile/create-businessman', form);
+        toast.success('Business profile created successfully!', { style: { background: '#022c22', color: '#fff' }, iconTheme: { primary: '#10b981', secondary: '#fff' } });
+        setProfileExists(true);
+      }
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save profile.');
+    }
   };
 
   const addCommodity = (e) => {
@@ -93,6 +120,12 @@ const BizProfile = () => {
 
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-econe-emerald"></div>
+        </div>
+      ) : (
+        <>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-econe-dark">Business Profile</h1>
@@ -241,6 +274,8 @@ const BizProfile = () => {
           </div>
         </motion.div>
       </div>
+      </>
+      )}
     </div>
   );
 };

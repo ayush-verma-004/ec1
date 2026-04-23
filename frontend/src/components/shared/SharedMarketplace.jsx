@@ -17,16 +17,6 @@ const initialStats = {
   maxPrice: 0,
 };
 
-const mockListings = [
-  { id: 'MC-201', carbonType: 'SOIL_CARBON', carbonAmount: 500, pricePerTonne: 1200, totalValue: 600000, sellerName: 'EcoGrow Partners', landAddress: 'Khasra 441, Rampur, UP', verificationLevel: 'NGO + Government', validUntil: '2028-12-31', listedAt: '2026-04-12', description: 'Verified deep-soil carbon from 2000-acre no-till regenerative farmland. Third-party satellite imagery confirmed.' },
-  { id: 'MC-202', carbonType: 'AGROFORESTRY', carbonAmount: 1200, pricePerTonne: 980, totalValue: 1176000, sellerName: 'Sunny Farms Co.', landAddress: 'Survey No. 88, Nashik, MH', verificationLevel: 'NGO + Government', validUntil: '2030-06-30', listedAt: '2026-04-11', description: 'Afforestation project credit pool from Northern Highland plantations. 15-year permanence guaranteed.' },
-  { id: 'MC-203', carbonType: 'BIOCHAR', carbonAmount: 300, pricePerTonne: 1550, totalValue: 465000, sellerName: 'AgroVital Init', landAddress: 'Plot 14, Anand, Gujarat', verificationLevel: 'NGO Only', validUntil: '2029-03-15', listedAt: '2026-04-10', description: '200+ year structural biochar permanence via pyrolysis. High co-benefits: water retention and soil health.' },
-  { id: 'MC-204', carbonType: 'BIOMASS', carbonAmount: 800, pricePerTonne: 860, totalValue: 688000, sellerName: 'Green Valley Init', landAddress: 'Sector 9, Bhopal, MP', verificationLevel: 'NGO + Government', validUntil: '2027-09-20', listedAt: '2026-04-09', description: 'Agro-residue energy biomass credits from certified processing units.' },
-  { id: 'MC-205', carbonType: 'WATER_CONSERVATION', carbonAmount: 400, pricePerTonne: 2100, totalValue: 840000, sellerName: 'WetLand Corps', landAddress: 'Bengal Delta Zone, WB', verificationLevel: 'NGO + Government', validUntil: '2031-01-01', listedAt: '2026-04-08', description: 'Rare wetland restoration offsets from the protected Bengal delta ecosystem.' },
-  { id: 'MC-206', carbonType: 'RENEWABLE_ENERGY', carbonAmount: 700, pricePerTonne: 1100, totalValue: 770000, sellerName: 'FarmFresh Org', landAddress: 'Taluka Baramati, Pune', verificationLevel: 'NGO + Government', validUntil: '2028-05-15', listedAt: '2026-04-07', description: 'Farm-scale solar + biogas renewable energy credits with satellite-verified generation logs.' },
-  { id: 'MC-207', carbonType: 'ORGANIC_FARMING', carbonAmount: 250, pricePerTonne: 1350, totalValue: 337500, sellerName: 'Sarathi Farms', landAddress: 'Wardha, Maharashtra', verificationLevel: 'NGO Only', validUntil: '2029-07-31', listedAt: '2026-04-06', description: 'Phase-transition organic farming credits validated via NPOP certified methodology.' },
-  { id: 'MC-208', carbonType: 'CROP_RESIDUE', carbonAmount: 600, pricePerTonne: 760, totalValue: 456000, sellerName: 'Punjab Agri Collective', landAddress: 'Ludhiana, Punjab', verificationLevel: 'NGO + Government', validUntil: '2027-11-30', listedAt: '2026-04-05', description: 'Paddy residue avoided-burning credits with real-time IoT burn-prevention monitoring.' },
-];
 
 /* ─── Config ─────────────────────────────────────────────────────────────── */
 const TYPE_CONFIG = {

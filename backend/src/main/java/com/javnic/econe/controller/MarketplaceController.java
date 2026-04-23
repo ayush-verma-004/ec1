@@ -16,7 +16,6 @@ import java.util.List;
 @RequestMapping("/api/marketplace")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-@PreAuthorize("isAuthenticated()")
 public class MarketplaceController {
 
     private final CarbonCreditService carbonCreditService;
@@ -34,6 +33,7 @@ public class MarketplaceController {
         return ResponseEntity.ok(stats);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/my-owned-credits")
     public ResponseEntity<List<CarbonCreditResponseDto>> getMyOwnedCredits() {
         String userId = securityUtils.getCurrentUser().getId();
@@ -41,6 +41,7 @@ public class MarketplaceController {
         return ResponseEntity.ok(credits);
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/{creditId}")
     public ResponseEntity<CarbonCreditResponseDto> getCreditDetails(@PathVariable String creditId) {
         CarbonCreditResponseDto credit = carbonCreditService.getCarbonCredit(creditId);

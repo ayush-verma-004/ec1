@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Building, MapPin, Edit3, X, Save, ShieldCheck, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
+import { useEffect } from 'react';
 
 // Floating Input Helper
 const FloatingInput = ({ label, type = "text", value, onChange, disabled, ...props }) => (
@@ -27,28 +29,49 @@ const FloatingInput = ({ label, type = "text", value, onChange, disabled, ...pro
   </div>
 );
 
-const mockNgoProfile = {
-  organizationName: 'NatureVerifiers Global',
-  registrationNumber: 'NGO-REG-9011-AX',
-  yearsOfOperation: 12,
-  website: 'https://natureverifiers.org',
-  contactPersonName: 'Sarah Jenkins',
-  phoneNumber: '9876543210',
-  addressLine1: '142 Green Street',
-  addressLine2: 'Suite 200',
-  city: 'Portland',
-  state: 'OR',
-  pincode: '972041',
-  latitude: '45.5231',
-  longitude: '-122.6765',
-  allowedRadius: '500',
-  focusAreas: ['Reforestation', 'Wetland Restoration']
+const emptyNgoProfile = {
+  organizationName: '',
+  registrationNumber: '',
+  yearsOfOperation: '',
+  website: '',
+  contactPersonName: '',
+  phoneNumber: '',
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
+  state: '',
+  pincode: '',
+  latitude: '',
+  longitude: '',
+  allowedRadiusKm: '',
+  focusAreas: []
 };
 
 const NgoProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(mockNgoProfile);
+  const [formData, setFormData] = useState(emptyNgoProfile);
   const [focusInput, setFocusInput] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get('/ngo-profile/ngo');
+        if (response.data) {
+          setFormData(response.data);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          setIsEditing(true);
+        } else {
+          toast.error('Failed to fetch profile.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleAddFocusArea = (e) => {
     if (e.key === 'Enter') {
@@ -69,14 +92,30 @@ const NgoProfile = () => {
   };
 
   const handleSave = async () => {
-    // API Call: PUT /api/ngo-profile/create  (or update)
-    await new Promise(r => setTimeout(r, 600));
-    toast.success('Successfully updated NGO Profile!', { style: { background: '#12b76a', color: '#fff' }});
-    setIsEditing(false);
+    try {
+      const payload = { 
+        ...formData, 
+        yearsOfOperation: parseInt(formData.yearsOfOperation),
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
+        allowedRadiusKm: parseFloat(formData.allowedRadiusKm)
+      };
+      await api.put('/ngo-profile/create', payload);
+      toast.success('Successfully updated NGO Profile!', { style: { background: '#12b76a', color: '#fff' }});
+      setIsEditing(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save profile.');
+    }
   };
 
   return (
     <div className="p-6 sm:p-10 max-w-7xl mx-auto">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-econe-emerald"></div>
+        </div>
+      ) : (
+        <>
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Organization Profile</h1>
@@ -195,15 +234,17 @@ const NgoProfile = () => {
                  <FloatingInput label="Pincode" value={formData.pincode} disabled={!isEditing} onChange={e=>setFormData({...formData, pincode: e.target.value})} />
                </div>
                <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-5">
-                 <FloatingInput label="Latitude" type="number" value={formData.latitude} disabled={!isEditing} onChange={e=>setFormData({...formData, latitude: e.target.value})} />
-                 <FloatingInput label="Longitude" type="number" value={formData.longitude} disabled={!isEditing} onChange={e=>setFormData({...formData, longitude: e.target.value})} />
-                 <FloatingInput label="Radius (KM)" type="number" value={formData.allowedRadius} disabled={!isEditing} onChange={e=>setFormData({...formData, allowedRadius: e.target.value})} />
+                 <FloatingInput label="Latitude" type="number" step="0.0001" value={formData.latitude} disabled={!isEditing} onChange={e=>setFormData({...formData, latitude: e.target.value})} />
+                 <FloatingInput label="Longitude" type="number" step="0.0001" value={formData.longitude} disabled={!isEditing} onChange={e=>setFormData({...formData, longitude: e.target.value})} />
+                 <FloatingInput label="Radius (KM)" type="number" step="0.1" value={formData.allowedRadiusKm} disabled={!isEditing} onChange={e=>setFormData({...formData, allowedRadiusKm: e.target.value})} />
                </div>
              </section>
 
           </div>
         </motion.div>
       </div>
+      </>
+      )}
     </div>
   );
 };
