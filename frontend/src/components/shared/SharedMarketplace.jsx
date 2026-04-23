@@ -6,14 +6,15 @@ import {
   Clock, CheckCircle, AlertCircle, Star, BarChart2, SlidersHorizontal
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../utils/api';
 
 /* ─── Mock Data ─────────────────────────────────────────────────────────── */
-const mockStats = {
-  totalCredits: 1248,
-  totalCarbonAmount: 284560,
-  averagePrice: 1142,
-  minPrice: 760,
-  maxPrice: 2300,
+const initialStats = {
+  totalCredits: 0,
+  totalCarbonAmount: 0,
+  averagePrice: 0,
+  minPrice: 0,
+  maxPrice: 0,
 };
 
 const mockListings = [
@@ -107,10 +108,26 @@ const SharedMarketplace = ({ userRole = 'FARMER' }) => {
   const [confirmBuy, setConfirmBuy] = useState(false);
   const [qty, setQty] = useState(1);
 
-  // Simulate API load
+  const [stats, setStats] = useState(initialStats);
+
+  const fetchMarketplaceData = async () => {
+    try {
+      setLoading(true);
+      const [listingsRes, statsRes] = await Promise.all([
+        api.get('/marketplace/listings'),
+        api.get('/marketplace/stats')
+      ]);
+      setListings(listingsRes.data);
+      setStats(statsRes.data);
+    } catch (error) {
+      toast.error('Failed to load marketplace data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const t = setTimeout(() => { setListings(mockListings); setLoading(false); }, 900);
-    return () => clearTimeout(t);
+    fetchMarketplaceData();
   }, []);
 
   // Filter + Sort
@@ -159,11 +176,11 @@ const SharedMarketplace = ({ userRole = 'FARMER' }) => {
           {/* Stats Bar */}
           <motion.div variants={containerV} initial="hidden" animate="show"
             className="flex flex-wrap gap-4 mt-8">
-            <StatCard label="Credits Available"   value={mockStats.totalCredits}      icon={<Leaf size={14} />} />
-            <StatCard label="Total CO₂ (Tons)"    value={mockStats.totalCarbonAmount} icon={<BarChart2 size={14} />} suffix=" T" />
-            <StatCard label="Avg Price / Tonne"   value={mockStats.averagePrice}      icon={<TrendingUp size={14} />} prefix="₹" />
-            <StatCard label="Min Price"           value={mockStats.minPrice}          icon={<TrendingUp size={14} />} prefix="₹" />
-            <StatCard label="Max Price"           value={mockStats.maxPrice}          icon={<TrendingUp size={14} />} prefix="₹" />
+            <StatCard label="Credits Available"   value={stats?.totalCredits || 0}      icon={<Leaf size={14} />} />
+            <StatCard label="Total CO₂ (Tons)"    value={stats?.totalCarbonAmount || 0} icon={<BarChart2 size={14} />} suffix=" T" />
+            <StatCard label="Avg Price / Tonne"   value={stats?.averagePrice || 0}      icon={<TrendingUp size={14} />} prefix="₹" />
+            <StatCard label="Min Price"           value={stats?.minPrice || 0}          icon={<TrendingUp size={14} />} prefix="₹" />
+            <StatCard label="Max Price"           value={stats?.maxPrice || 0}          icon={<TrendingUp size={14} />} prefix="₹" />
           </motion.div>
         </div>
       </div>
@@ -310,7 +327,7 @@ const SharedMarketplace = ({ userRole = 'FARMER' }) => {
 
                         {/* Body */}
                         <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
-                          <p className="text-gray-600 text-sm leading-relaxed">{selected.description}</p>
+                          <p className="text-gray-600 text-sm leading-relaxed">{selected.projectDescription || 'No description provided.'}</p>
 
                           {/* Price grid */}
                           <div className="grid grid-cols-3 gap-3">
