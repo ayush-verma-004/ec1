@@ -62,6 +62,25 @@ function App() {
     return () => clearInterval(interval);
   }, [location.pathname, navigate]);
 
+  /* ── Backend Keep-Alive Ping ─────────────────────────────────────────── */
+  useEffect(() => {
+    // Ping the backend every 10 minutes to prevent sleep on free tiers (like Render)
+    // Note: This only works while a user has the tab open!
+    const pingBackend = async () => {
+      try {
+        // We use fetch instead of axios to avoid triggering auth interceptors for a public endpoint
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/health`);
+      } catch (err) {
+        // Ignore background ping errors
+      }
+    };
+    
+    // Initial ping on app load, then every 10 mins
+    pingBackend();
+    const interval = setInterval(pingBackend, 10 * 60 * 1000); // 10 minutes
+    return () => clearInterval(interval);
+  }, []);
+
   /* ── Sign out ────────────────────────────────────────────────────────── */
   const handleSignOut = () => {
     clearSession();
