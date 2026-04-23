@@ -33,7 +33,7 @@ public interface CarbonCreditRepository extends MongoRepository<CarbonCredit, St
     List<CarbonCredit> findByStatusForGovernment(CarbonCreditStatus status);
 
     // Find active credits listed for sale
-    @Query("{ 'isListedForSale': true, 'status': 'ACTIVE', 'isSold': false }")
+    @Query("{ 'isListedForSale': true, 'status': 'LISTED_FOR_SALE', 'isSold': false }")
     List<CarbonCredit> findActiveListedCredits();
 
     // Find credits by current owner
@@ -55,6 +55,6 @@ public interface CarbonCreditRepository extends MongoRepository<CarbonCredit, St
     @Query(value = "{ 'farmerId': ?0, 'status': 'ACTIVE' }", count = true)
     Long countActiveCreditsByFarmer(String farmerId);
 
-    @Query(value = "{ 'status': 'ACTIVE', 'isListedForSale': true }", count = true)
+    @Query(value = "{ 'status': 'LISTED_FOR_SALE', 'isListedForSale': true }", count = true)
     Long countActiveMarketplaceListings();
 }
