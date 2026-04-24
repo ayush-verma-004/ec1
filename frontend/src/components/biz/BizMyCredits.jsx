@@ -32,7 +32,11 @@ const BizMyCredits = () => {
     try {
       setLoading(true);
       const response = await api.get('/businessman-carbon/my-credits');
-      setCredits(response.data);
+      const mappedCredits = response.data.map(c => ({
+        ...c,
+        displayStatus: c.status === 'ACTIVE' ? 'OWNED' : c.status === 'LISTED_FOR_SALE' ? 'LISTED' : c.status
+      }));
+      setCredits(mappedCredits);
     } catch (error) {
       toast.error('Failed to load portfolio');
     } finally {
@@ -44,7 +48,7 @@ const BizMyCredits = () => {
     fetchMyCredits();
   }, []);
 
-  const filtered = filter === 'All' ? credits : credits.filter(c => c.status === filter);
+  const filtered = filter === 'All' ? credits : credits.filter(c => c.displayStatus === filter);
 
   const handleListForSale = async () => {
     const price = parseInt(listPrice);
@@ -99,10 +103,10 @@ const BizMyCredits = () => {
       {/* Summary Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Owned', value: `${credits.filter(c=>c.status==='OWNED').reduce((a,c)=>a+(c.carbonAmount||c.amount),0)} CC` },
-          { label: 'Total Listed', value: `${credits.filter(c=>c.status==='LISTED').reduce((a,c)=>a+(c.carbonAmount||c.amount),0)} CC` },
-          { label: 'Credits In Inventory', value: credits.filter(c=>c.status==='OWNED').length },
-          { label: 'Active Listings', value: credits.filter(c=>c.status==='LISTED').length },
+          { label: 'Total Owned', value: `${credits.filter(c=>c.displayStatus==='OWNED').reduce((a,c)=>a+(c.carbonAmount||c.amount),0)} CC` },
+          { label: 'Total Listed', value: `${credits.filter(c=>c.displayStatus==='LISTED').reduce((a,c)=>a+(c.carbonAmount||c.amount),0)} CC` },
+          { label: 'Credits In Inventory', value: credits.filter(c=>c.displayStatus==='OWNED').length },
+          { label: 'Active Listings', value: credits.filter(c=>c.displayStatus==='LISTED').length },
         ].map((item, i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
             <p className="text-xs text-gray-500 font-medium mb-1">{item.label}</p>
@@ -123,18 +127,18 @@ const BizMyCredits = () => {
               className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm flex flex-col gap-4">
               <div className="flex justify-between items-start">
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-800`}>{credit.carbonType || credit.type || 'Carbon Credit'}</span>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusColors[credit.status] || 'bg-gray-100 text-gray-500'}`}>{credit.status}</span>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusColors[credit.displayStatus] || 'bg-gray-100 text-gray-500'}`}>{credit.displayStatus}</span>
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-mono">{credit.id}</p>
                 <h3 className="text-2xl font-bold text-econe-dark mt-1">{credit.carbonAmount || credit.amount} <span className="text-sm font-medium text-gray-400">Tons CO₂</span></h3>
-                {credit.status === 'LISTED' && (
-                  <p className="text-sm text-econe-emerald font-bold mt-1 flex items-center gap-1"><Tag size={13} /> Listed @ ₹{credit.listPrice}/CC</p>
+                {credit.displayStatus === 'LISTED' && (
+                  <p className="text-sm text-econe-emerald font-bold mt-1 flex items-center gap-1"><Tag size={13} /> Listed @ ₹{credit.pricePerTonne || credit.listPrice}/CC</p>
                 )}
                 <p className="text-xs text-gray-400 mt-2">Methodology: {credit.methodology || 'N/A'}</p>
               </div>
               <div className="mt-auto pt-4 border-t border-gray-100 flex gap-2">
-                {credit.status === 'OWNED' ? (
+                {credit.displayStatus === 'OWNED' ? (
                   <button onClick={() => { setListingCredit(credit); setListPrice(''); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-econe-emerald text-white rounded-xl text-sm font-bold hover:bg-econe-forest transition-colors shadow-sm shadow-econe-emerald/20">
                     <DollarSign size={15} /> List for Sale
                   </button>

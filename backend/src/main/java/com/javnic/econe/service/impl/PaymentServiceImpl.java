@@ -24,6 +24,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
+
 import java.time.LocalDateTime;
 
 @Slf4j
@@ -119,6 +122,10 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "marketplaceListings", allEntries = true),
+            @CacheEvict(value = "carbonCredits", allEntries = true)
+    })
     public void verifyPayment(String userId, PaymentVerifyDto request) {
         // Fetch Payment record
         Payment payment = paymentRepository.findByOrderId(request.getRazorpayOrderId())
