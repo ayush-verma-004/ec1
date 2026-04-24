@@ -56,10 +56,10 @@ public class GovernmentTransactionController {
         return ResponseEntity.ok(transaction);
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<CarbonCreditTransaction>> getAllTransactions() {
-        // Government can view all transactions
-        List<CarbonCreditTransaction> transactions = transactionService.getPendingTransactions();
+    @GetMapping("/my-transactions")
+    public ResponseEntity<List<CarbonCreditTransaction>> getMyTransactions() {
+        String govId = securityUtils.getCurrentUser().getId();
+        List<CarbonCreditTransaction> transactions = transactionService.getGovernmentTransactions(govId);
         return ResponseEntity.ok(transactions);
     }
 }

@@ -19,4 +19,8 @@ public interface CarbonTransactionService {
 
     // Transaction Details
     CarbonCreditTransaction getTransaction(String transactionId);
+
+    // Multi-party viewing
+    List<CarbonCreditTransaction> getNgoTransactions(String ngoId);
+    List<CarbonCreditTransaction> getGovernmentTransactions(String govId);
 }

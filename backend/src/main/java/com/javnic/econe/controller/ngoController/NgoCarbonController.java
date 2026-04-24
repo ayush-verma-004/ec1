@@ -4,6 +4,7 @@ import com.javnic.econe.dto.carbon.request.VerifyCarbonCreditRequestDto;
 import com.javnic.econe.dto.carbon.response.CarbonCreditResponseDto;
 import com.javnic.econe.security.SecurityUtils;
 import com.javnic.econe.service.CarbonCreditService;
+import com.javnic.econe.service.CarbonTransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 public class NgoCarbonController {
 
     private final CarbonCreditService carbonCreditService;
+    private final CarbonTransactionService transactionService;
     private final SecurityUtils securityUtils;
 
     @GetMapping("/pending-verification")
@@ -49,5 +51,12 @@ public class NgoCarbonController {
     public ResponseEntity<CarbonCreditResponseDto> getCarbonCredit(@PathVariable String creditId) {
         CarbonCreditResponseDto credit = carbonCreditService.getCarbonCredit(creditId);
         return ResponseEntity.ok(credit);
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<com.javnic.econe.entity.CarbonCreditTransaction>> getNgoTransactions() {
+        String ngoId = securityUtils.getCurrentUser().getId();
+        List<com.javnic.econe.entity.CarbonCreditTransaction> transactions = transactionService.getNgoTransactions(ngoId);
+        return ResponseEntity.ok(transactions);
     }
 }

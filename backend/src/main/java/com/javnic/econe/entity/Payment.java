@@ -21,6 +21,7 @@ public class Payment {
     private String userId;
     private String carbonCreditId;
     private Double amount;
+    private Double quantity;
     
     private String status; // "CREATED", "SUCCESS", "FAILED"
     

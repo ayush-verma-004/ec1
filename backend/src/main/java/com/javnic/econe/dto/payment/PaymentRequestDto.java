@@ -22,5 +22,5 @@ public class PaymentRequestDto {
     
     // Quantity of credits to buy. Typically 1 in this context, or specified if partial sale is supported.
     @Builder.Default
-    private Integer quantity = 1;
+    private Double quantity = 1.0;
 }

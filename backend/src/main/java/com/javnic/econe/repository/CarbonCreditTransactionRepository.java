@@ -51,4 +51,10 @@ public interface CarbonCreditTransactionRepository extends MongoRepository<Carbo
     // Revenue calculation
     @Query(value = "{ 'sellerId': ?0, 'status': 'COMPLETED' }", fields = "{ 'totalAmount': 1 }")
     List<CarbonCreditTransaction> findCompletedSalesForRevenue(String sellerId);
+
+    // Find by NGO ID
+    List<CarbonCreditTransaction> findByNgoId(String ngoId);
+
+    // Find by Government ID
+    List<CarbonCreditTransaction> findByGovernmentId(String governmentId);
 }

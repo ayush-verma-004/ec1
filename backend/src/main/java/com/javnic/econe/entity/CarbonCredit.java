@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,9 @@ public class CarbonCredit {
 
     @Id
     private String id;
+    
+    @Version
+    private Long version;
 
     // Reference IDs
     private String farmerId;

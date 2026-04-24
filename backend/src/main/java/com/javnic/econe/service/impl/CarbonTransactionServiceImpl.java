@@ -212,4 +212,14 @@ public class CarbonTransactionServiceImpl implements CarbonTransactionService {
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found"));
     }
+
+    @Override
+    public List<CarbonCreditTransaction> getNgoTransactions(String ngoId) {
+        return transactionRepository.findByNgoId(ngoId);
+    }
+
+    @Override
+    public List<CarbonCreditTransaction> getGovernmentTransactions(String govId) {
+        return transactionRepository.findByGovernmentId(govId);
+    }
 }

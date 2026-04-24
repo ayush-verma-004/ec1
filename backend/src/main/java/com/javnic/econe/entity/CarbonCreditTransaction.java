@@ -36,6 +36,9 @@ public class CarbonCreditTransaction {
     private String buyerName;
     private String buyerRole;
 
+    private String ngoId;
+    private String governmentId;
+
     // Financial Details
     private Double carbonAmount; // tonnes
     private Double pricePerTonne;
