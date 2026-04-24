@@ -181,6 +181,8 @@ public class ProfileMapper {
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
                 .allowedRadiusKm(dto.getAllowedRadiusKm())
+                .bankAccountNumber(dto.getBankAccountNumber())
+                .ifscCode(dto.getIfscCode())
                 .build();
     }
 
@@ -196,6 +198,8 @@ public class ProfileMapper {
                 .focusAreas(entity.getFocusAreas())
                 .website(entity.getWebsite())
                 .yearsOfOperation(entity.getYearsOfOperation())
+                .bankAccountNumber(entity.getBankAccountNumber())
+                .ifscCode(entity.getIfscCode())
                 .build();
     }
 
@@ -209,6 +213,8 @@ public class ProfileMapper {
         entity.setFocusAreas(dto.getFocusAreas());
         entity.setWebsite(dto.getWebsite());
         entity.setYearsOfOperation(dto.getYearsOfOperation());
+        entity.setBankAccountNumber(dto.getBankAccountNumber());
+        entity.setIfscCode(dto.getIfscCode());
     }
 
     private NGOProfile.NGOAddress toNGOAddress(NGOProfileDto.NGOAddressDto dto) {
@@ -246,6 +252,8 @@ public class ProfileMapper {
                 .phoneNumber(dto.getPhoneNumber())
                 .officeAddress(dto.getOfficeAddress())
                 .employeeId(dto.getEmployeeId())
+                .bankAccountNumber(dto.getBankAccountNumber())
+                .ifscCode(dto.getIfscCode())
                 .build();
     }
 
@@ -259,6 +267,8 @@ public class ProfileMapper {
                 .phoneNumber(entity.getPhoneNumber())
                 .officeAddress(entity.getOfficeAddress())
                 .employeeId(entity.getEmployeeId())
+                .bankAccountNumber(entity.getBankAccountNumber())
+                .ifscCode(entity.getIfscCode())
                 .build();
     }
 
@@ -271,5 +281,7 @@ public class ProfileMapper {
         entity.setPhoneNumber(dto.getPhoneNumber());
         entity.setOfficeAddress(dto.getOfficeAddress());
         entity.setEmployeeId(dto.getEmployeeId());
+        entity.setBankAccountNumber(dto.getBankAccountNumber());
+        entity.setIfscCode(dto.getIfscCode());
     }
 }

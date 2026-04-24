@@ -43,6 +43,11 @@ public class NGOProfileDto {
     private double longitude;
 
     private double allowedRadiusKm;
+
+    private String bankAccountNumber;
+
+    private String ifscCode;
+
     @Data
     @Builder
     @NoArgsConstructor

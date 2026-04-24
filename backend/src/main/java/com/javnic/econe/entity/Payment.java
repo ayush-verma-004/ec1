@@ -13,31 +13,21 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "government_profiles")
-public class GovernmentProfile {
+@Document(collection = "payments")
+public class Payment {
     @Id
     private String id;
-
+    
     private String userId;
-
-    private String departmentName;
-
-    private String officerName;
-
-    private String designation;
-
-    private String phoneNumber;
-
-    private String officeAddress;
-
-    private String employeeId;
-
-    private String bankAccountNumber;
-
-    private String ifscCode;
-
+    private String carbonCreditId;
+    private Double amount;
+    
+    private String status; // "CREATED", "SUCCESS", "FAILED"
+    
+    private String orderId; // Razorpay Order ID
+    private String paymentId; // Razorpay Payment ID
+    private String signature; // Razorpay Signature
+    
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
-
 }

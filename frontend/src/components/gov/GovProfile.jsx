@@ -14,6 +14,8 @@ const GovProfile = () => {
     employeeId: '',
     phoneNumber: '',
     officeAddress: '',
+    bankAccountNumber: '',
+    ifscCode: '',
   });
   const [loading, setLoading] = useState(true);
 
@@ -201,6 +203,28 @@ const GovProfile = () => {
                 onChange={handleChange} 
                 readOnly={!isEditing} 
                 className="md:col-span-2"
+              />
+
+              <div className="md:col-span-2 pt-4 border-t border-gray-100 mt-2">
+                <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Financial Details</h4>
+              </div>
+
+              <InputField 
+                icon={<Building size={18} />} 
+                label="Bank Account Number" 
+                name="bankAccountNumber" 
+                value={profileData.bankAccountNumber} 
+                onChange={handleChange} 
+                readOnly={!isEditing} 
+              />
+
+              <InputField 
+                icon={<Hash size={18} />} 
+                label="IFSC Code" 
+                name="ifscCode" 
+                value={profileData.ifscCode} 
+                onChange={handleChange} 
+                readOnly={!isEditing} 
               />
 
             </div>

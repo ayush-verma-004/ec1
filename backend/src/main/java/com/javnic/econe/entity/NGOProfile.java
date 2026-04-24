@@ -36,6 +36,10 @@ public class NGOProfile {
 
     private Integer yearsOfOperation;
 
+    private String bankAccountNumber;
+
+    private String ifscCode;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

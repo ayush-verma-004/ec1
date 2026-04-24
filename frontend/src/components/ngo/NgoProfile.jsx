@@ -44,7 +44,9 @@ const emptyNgoProfile = {
   latitude: '',
   longitude: '',
   allowedRadiusKm: '',
-  focusAreas: []
+  focusAreas: [],
+  bankAccountNumber: '',
+  ifscCode: ''
 };
 
 const NgoProfile = () => {
@@ -216,6 +218,17 @@ const NgoProfile = () => {
                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                  <FloatingInput label="Name" value={formData.contactPersonName} disabled={!isEditing} onChange={e=>setFormData({...formData, contactPersonName: e.target.value})} />
                  <FloatingInput label="Phone Number" value={formData.phoneNumber} disabled={!isEditing} onChange={e=>setFormData({...formData, phoneNumber: e.target.value})} />
+               </div>
+             </section>
+
+             <hr className="border-gray-100" />
+
+             {/* Financial details */}
+             <section>
+               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Financial Details</h4>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                 <FloatingInput label="Bank Account Number" value={formData.bankAccountNumber} disabled={!isEditing} onChange={e=>setFormData({...formData, bankAccountNumber: e.target.value})} />
+                 <FloatingInput label="IFSC Code" value={formData.ifscCode} disabled={!isEditing} onChange={e=>setFormData({...formData, ifscCode: e.target.value})} />
                </div>
              </section>
 

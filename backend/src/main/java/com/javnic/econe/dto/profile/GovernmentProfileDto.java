@@ -31,4 +31,8 @@ public class GovernmentProfileDto {
 
     @NotBlank(message = "Employee ID is required")
     private String employeeId;
+
+    private String bankAccountNumber;
+
+    private String ifscCode;
 }

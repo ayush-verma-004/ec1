@@ -55,12 +55,67 @@ const BizMarketplace = () => {
     return matchSearch && matchType;
   });
 
-  const handlePurchase = () => {
-    // API: POST /api/businessman-transaction/request-purchase
-    toast.success(`Purchase request for ${qty} CC of ${selectedListing.id} submitted!`);
-    setConfirmPurchase(false);
-    setSelectedListing(null);
-    setQty(1);
+  const handlePurchase = async () => {
+    try {
+      const loadingToast = toast.loading('Initiating secure payment...');
+      
+      // 1. Create Order
+      const { data: orderDetails } = await api.post('/payment/create-order', {
+        carbonCreditId: selectedListing.id,
+        amount: qty * selectedListing.pricePerTonne,
+        quantity: qty
+      });
+
+      toast.dismiss(loadingToast);
+
+      // 2. Initialize Razorpay
+      const options = {
+        key: orderDetails.keyId,
+        amount: orderDetails.amount * 100,
+        currency: orderDetails.currency,
+        name: 'EosCarbon',
+        description: `Purchase of ${qty} Carbon Credits`,
+        order_id: orderDetails.orderId,
+        handler: async function (response) {
+          const verifyingToast = toast.loading('Verifying payment...');
+          try {
+            // 3. Verify Payment
+            await api.post('/payment/verify', {
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
+            });
+            toast.dismiss(verifyingToast);
+            toast.success('Payment successful! Carbon credits acquired.', { style: { background: '#10b981', color: '#fff' }});
+            
+            // Refresh listings
+            fetchListings();
+            setConfirmPurchase(false);
+            setSelectedListing(null);
+            setQty(1);
+          } catch (err) {
+            toast.dismiss(verifyingToast);
+            toast.error('Payment verification failed.');
+          }
+        },
+        prefill: {
+          name: 'EosCarbon User',
+        },
+        theme: {
+          color: '#10b981'
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        toast.error('Payment failed: ' + response.error.description);
+      });
+      rzp.open();
+
+    } catch (error) {
+      toast.dismiss();
+      toast.error(error.response?.data?.message || 'Failed to initiate payment.');
+    }
   };
 
 
